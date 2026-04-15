@@ -1,0 +1,38 @@
+{
+  "virustotal": {
+    "apiKey": "",
+    "baseUrl": "https://www.virustotal.com/api/v3",
+    "timeoutMs": 10000
+  },
+  "reputation": {
+    "npm": {
+      "registryUrl": "https://registry.npmjs.org",
+      "timeoutMs": 5000
+    },
+    "pypi": {
+      "apiUrl": "https://pypi.org/pypi",
+      "timeoutMs": 5000
+    },
+    "github": {
+      "apiUrl": "https://api.github.com",
+      "timeoutMs": 5000
+    }
+  },
+  "decisionThresholds": {
+    "maliciousVotes": 3,
+    "suspiciousVotes": 1,
+    "minDownloads": 1000,
+    "minStars": 50,
+    "maxAge": 30
+  },
+  "cve": {
+    "timeoutMs": 10000
+  },
+  "patterns": {
+    "enabled": true
+  },
+  "telegram": {
+    "enabled": true,
+    "chatId": ""
+  }
+}

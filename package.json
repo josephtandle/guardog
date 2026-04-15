@@ -1,0 +1,26 @@
+{
+  "name": "guard-dog",
+  "version": "1.0.0",
+  "description": "Security agent for scanning packages and detecting malicious code",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node tests/test.js",
+    "scan": "node bin/scan-deps.js",
+    "cron": "bash bin/cron-nightly-scan.sh",
+    "trigger": "node bin/mission-control-trigger.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2"
+  },
+  "keywords": [
+    "security",
+    "package-scanner",
+    "malware-detection"
+  ],
+  "author": "josephtandle",
+  "license": "MIT"
+}

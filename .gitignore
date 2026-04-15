@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test outputs
+coverage/
+.nyc_output/
+
+# Build outputs
+dist/
+build/
+
+# Guardog runtime data
+data/
+logs/
+archive/
+
+# Internal docs (not needed for distribution)
+IMPLEMENTATION.md
+PROJECT_COMPLETE.md
+OPERATIONS.md
+GUARD_DOG_PROMPT.md
+QUICKSTART.md
+bin/setup-logging-structure.sh
+bin/mission-control-trigger.js
+bin/sync-vulns-to-db.js
+bin/threat-intel-daily.js

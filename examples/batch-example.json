@@ -1,0 +1,22 @@
+[
+  {
+    "name": "react",
+    "ecosystem": "npm",
+    "comment": "Trusted provider - should be SILENT"
+  },
+  {
+    "name": "lodash",
+    "ecosystem": "npm",
+    "comment": "Popular package - should be SILENT"
+  },
+  {
+    "name": "express",
+    "ecosystem": "npm",
+    "comment": "Trusted provider - should be SILENT"
+  },
+  {
+    "name": "this-package-definitely-does-not-exist-12345",
+    "ecosystem": "npm",
+    "comment": "Non-existent package - should WHINE or BARK"
+  }
+]

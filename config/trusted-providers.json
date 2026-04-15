@@ -1,0 +1,32 @@
+{
+  "trustedProviders": [
+    "react",
+    "vue",
+    "angular",
+    "express",
+    "lodash",
+    "axios",
+    "webpack",
+    "eslint",
+    "typescript",
+    "next",
+    "prettier",
+    "jest",
+    "mocha",
+    "chai"
+  ],
+  "trustedNamespaces": [
+    "@types",
+    "@babel",
+    "@typescript-eslint",
+    "@angular",
+    "@vue",
+    "@react",
+    "@nestjs",
+    "@modelcontextprotocol"
+  ],
+  "trustedScopes": {
+    "npm": ["vercel", "sindresorhus", "microsoft", "google"],
+    "pypi": ["django", "flask", "requests", "numpy", "pandas"]
+  }
+}
