@@ -31,6 +31,8 @@ export class ReputationChecker {
         results.registry = await this.checkNpmRegistry(packageName);
       } else if (ecosystem === 'pypi') {
         results.registry = await this.checkPyPiRegistry(packageName);
+      } else if (ecosystem === 'rubygems') {
+        results.registry = await this.checkRubyGemsRegistry(packageName);
       }
 
       // Check GitHub if repository URL is available
@@ -137,6 +139,47 @@ export class ReputationChecker {
         author: info.author,
         repository: this.parseRepository(info.project_urls),
         license: info.license,
+        deprecated: false
+      };
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /**
+   * Check RubyGems registry
+   * @param {string} packageName - Gem name
+   * @returns {Promise<Object>} RubyGems metadata
+   */
+  async checkRubyGemsRegistry(packageName) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.config.rubygems.timeoutMs);
+
+    try {
+      const response = await fetch(
+        `${this.config.rubygems.apiUrl}/gems/${encodeURIComponent(packageName)}.json`,
+        { signal: controller.signal }
+      );
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+
+      return {
+        name: data.name,
+        version: data.version,
+        description: data.info,
+        downloads: data.downloads,
+        weeklyDownloads: null, // RubyGems API doesn't expose weekly downloads
+        publishDate: data.version_created_at,
+        author: data.authors,
+        maintainers: 1, // RubyGems doesn't expose maintainer count easily
+        repository: this.parseRepository(
+          data.source_code_uri || data.homepage_uri || data.project_uri
+        ),
+        license: data.licenses?.join(', ') || null,
         deprecated: false
       };
     } finally {

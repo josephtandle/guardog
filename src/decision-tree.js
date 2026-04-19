@@ -90,10 +90,16 @@ export class DecisionTree {
     // Check trusted scopes (e.g., @vercel/analytics matches scope "vercel")
     if (packageName.startsWith('@')) {
       const scope = packageName.slice(1).split('/')[0];
-      const allScopes = Object.values(this.trusted.trustedScopes || {}).flat();
-      if (allScopes.includes(scope)) {
+      const npmScopes = (this.trusted.trustedScopes?.npm || []);
+      if (npmScopes.includes(scope)) {
         return true;
       }
+    }
+
+    // Check rubygems trusted packages (exact name match against rubygems scope list)
+    const rubygemsTrusted = this.trusted.trustedScopes?.rubygems || [];
+    if (rubygemsTrusted.includes(packageName)) {
+      return true;
     }
 
     return false;

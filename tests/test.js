@@ -3,7 +3,8 @@
  * Tests all components and integration
  */
 
-import { existsSync } from 'fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { GuardDog } from '../src/index.js';
@@ -302,12 +303,87 @@ async function runTests() {
     test.assert(existsSync(historyPath), 'scan-history.json should exist after analysis');
   });
 
+  await test.run('Malformed scan history is repaired before save', async () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'guard-dog-history-'));
+    const historyPath = join(tempDir, 'scan-history.json');
+
+    try {
+      writeFileSync(historyPath, '[{"packageName":"react","ecosystem":"npm"}]]');
+
+      const isolatedGuardDog = new GuardDog();
+      isolatedGuardDog.dataDir = tempDir;
+      isolatedGuardDog.saveScanHistory({
+        packageName: 'express',
+        ecosystem: 'npm',
+        decision: {
+          action: 'SILENT',
+          threat: 'SAFE',
+          confidence: 100,
+          reasons: [],
+        },
+        cveResults: { vulnerabilities: [] },
+        patternResults: { totalScore: 0 },
+        duration: 1,
+        timestamp: '2026-04-18T00:00:00.000Z',
+      });
+
+      const parsed = JSON.parse(readFileSync(historyPath, 'utf-8'));
+      test.assert(Array.isArray(parsed), 'Repaired history should be a JSON array');
+      test.assert(parsed[parsed.length - 1].packageName === 'express', 'New result should be appended after repair');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
   // Test analyze returns CVE and pattern fields (Bug 1)
   await test.run('Analyze returns CVE and pattern results', async () => {
     const result = await guardDog.analyze('express', 'npm');
     test.assert('cveResults' in result, 'Result should include cveResults');
     test.assert('patternResults' in result, 'Result should include patternResults');
     test.assert('timestamp' in result, 'Result should include timestamp');
+  });
+
+  // RubyGems tests
+  await test.run('Reputation checker - RubyGems (rake)', async () => {
+    const result = await guardDog.reputation.checkReputation('rake', 'rubygems');
+    test.assert(result, 'Should return result');
+    test.assert(result.registry, 'Should have registry data');
+    test.assert(result.registry.name === 'rake', 'Should match gem name');
+    test.assert(result.signals, 'Should have signals array');
+  });
+
+  await test.run('Reputation checker - nonexistent gem', async () => {
+    const result = await guardDog.reputation.checkReputation(
+      'this-gem-definitely-does-not-exist-99999',
+      'rubygems'
+    );
+    test.assert(result, 'Should return result');
+    test.assert(
+      result.signals.includes('PACKAGE_NOT_FOUND'),
+      'Should flag missing gem'
+    );
+  });
+
+  await test.run('Trusted rubygems detection', async () => {
+    test.assert(
+      guardDog.decisionTree.isTrustedProvider('rails'),
+      'Should recognize rails as trusted'
+    );
+    test.assert(
+      guardDog.decisionTree.isTrustedProvider('bundler'),
+      'Should recognize bundler as trusted'
+    );
+    test.assert(
+      !guardDog.decisionTree.isTrustedProvider('evil-gem-xyz'),
+      'Should not trust unknown gems'
+    );
+  });
+
+  await test.run('CVE check - RubyGems ecosystem', async () => {
+    const result = await guardDog.cveChecker.checkCVEs('rails', 'rubygems');
+    test.assert(result, 'Should return CVE result');
+    test.assert('found' in result, 'Should have found field');
+    test.assert('severity' in result, 'Should have severity breakdown');
   });
 
   // Test batch analysis with mock data

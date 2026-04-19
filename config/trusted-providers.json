@@ -27,6 +27,7 @@
   ],
   "trustedScopes": {
     "npm": ["vercel", "sindresorhus", "microsoft", "google"],
-    "pypi": ["django", "flask", "requests", "numpy", "pandas"]
+    "pypi": ["django", "flask", "requests", "numpy", "pandas"],
+    "rubygems": ["rails", "rake", "bundler", "rspec", "rubocop", "devise", "activerecord", "activesupport", "actionpack", "nokogiri"]
   }
 }

@@ -16,6 +16,10 @@
     "github": {
       "apiUrl": "https://api.github.com",
       "timeoutMs": 5000
+    },
+    "rubygems": {
+      "apiUrl": "https://rubygems.org/api/v1",
+      "timeoutMs": 5000
     }
   },
   "decisionThresholds": {
