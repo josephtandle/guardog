@@ -30,6 +30,22 @@ export class DecisionTree {
       }
     };
 
+    // Check known-compromised list FIRST — overrides trusted provider status
+    const compromised = (this.trusted.knownCompromised || []).find(
+      entry => entry.name === packageName
+    );
+    if (compromised) {
+      decision.action = 'BARK';
+      decision.threat = 'DANGER';
+      decision.confidence = 100;
+      decision.reasons.push(`🚨 Known compromised package: ${compromised.reason}`);
+      decision.reasons.push(`Flagged since: ${compromised.since}`);
+      if (compromised.reference) {
+        decision.reasons.push(`Reference: ${compromised.reference}`);
+      }
+      return decision;
+    }
+
     // Check if trusted provider (skip further checks)
     if (this.isTrustedProvider(packageName)) {
       decision.reasons.push('Trusted provider - scanning skipped');

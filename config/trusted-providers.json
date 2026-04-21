@@ -5,7 +5,6 @@
     "angular",
     "express",
     "lodash",
-    "axios",
     "webpack",
     "eslint",
     "typescript",
@@ -14,6 +13,15 @@
     "jest",
     "mocha",
     "chai"
+  ],
+  "knownCompromised": [
+    {
+      "name": "axios",
+      "ecosystem": "npm",
+      "reason": "Supply chain compromise cited by OpenAI (2026-04-21) — triggered rotation of macOS code signing keys for ChatGPT Desktop, Codex, and Atlas. Treat any install as untrusted until further notice.",
+      "since": "2026-04-21",
+      "reference": "OpenAI security advisory, email noreply@email.openai.com, 2026-04-21"
+    }
   ],
   "trustedNamespaces": [
     "@types",
