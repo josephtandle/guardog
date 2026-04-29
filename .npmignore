@@ -1,0 +1,34 @@
+# Runtime state and generated output
+.env
+.env.*
+data/
+logs/
+archive/
+reports/**
+!reports/.digest-template.md
+coverage/
+.nyc_output/
+
+# Development and local workspace files
+node_modules/
+npm-debug.log*
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Internal workspace automation not intended for public npm installs
+CLAUDE.md
+CONTEXT.md
+GUARD_DOG_PROMPT.md
+IMPLEMENTATION.md
+OPERATIONS.md
+PROJECT_COMPLETE.md
+QUICKSTART.md
+bin/mission-control-trigger.js
+bin/setup-logging-structure.sh
+bin/sync-vulns-to-db.js
+bin/threat-intel-daily.js
+bin/threat-intel-scan.sh
+bin/tunnel-health-check.js

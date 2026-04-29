@@ -4,12 +4,36 @@
   "description": "Security agent for scanning packages and detecting malicious code",
   "main": "src/index.js",
   "type": "module",
+  "bin": {
+    "guard-dog": "src/index.js",
+    "guardog": "src/index.js",
+    "guard-dog-scan": "bin/scan-deps.js"
+  },
   "scripts": {
     "start": "node src/index.js",
     "test": "node tests/test.js",
     "scan": "node bin/scan-deps.js",
-    "cron": "bash bin/cron-nightly-scan.sh",
-    "trigger": "node bin/mission-control-trigger.js"
+    "cron": "bash bin/cron-nightly-scan.sh"
+  },
+  "files": [
+    ".env.example",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "MANIFEST.md",
+    "guardog.md",
+    "config/config.json",
+    "config/trusted-providers.json",
+    "examples/batch-example.json",
+    "src/",
+    "bin/scan-deps.js",
+    "bin/cron-nightly-scan.sh",
+    "bin/git-precommit-hook.sh",
+    "bin/npm-postinstall-hook.sh",
+    "bin/run-cso.sh"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",
@@ -22,5 +46,16 @@
     "malware-detection"
   ],
   "author": "josephtandle",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josephtandle/guardog.git"
+  },
+  "bugs": {
+    "url": "https://github.com/josephtandle/guardog/issues"
+  },
+  "homepage": "https://github.com/josephtandle/guardog#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }
