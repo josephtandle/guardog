@@ -1,121 +1,114 @@
 # Guardog
 
-A package security scanner for npm and PyPI. Checks packages for known CVEs, malicious code patterns, and reputation signals before you install them.
+Guardog is a package security scanner for npm and PyPI. It checks packages for known CVEs, reputation signals, suspicious metadata, malicious code patterns, optional VirusTotal results, and cached threat-intelligence findings before you install or commit dependency changes.
 
-Works out of the box. No API keys required.
+It runs locally and does not use OpenAI, YOLO, MyOS, Dispatch, Typeless, or any other AI/token service. Network lookups go to public package and security APIs such as npm, PyPI, OSV, GitHub Advisories, NVD, CISA KEV, and optional VirusTotal.
 
-## Install
+## Install From GitHub
+
+Requires Node.js 18 or newer.
 
 ```bash
-git clone https://github.com/josephtandle/guardog.git ~/guardog
-cd ~/guardog
-./install.sh
+npm install -g github:josephtandle/guardog
+guardog setup
 ```
 
-The installer handles dependencies, wires up the Claude Code `/guardog` skill, and optionally sets up a git pre-commit hook.
+The setup wizard creates a user-writable state folder at `~/.guardog` on macOS/Linux and `%USERPROFILE%\.guardog` on Windows. It asks:
+
+1. Run Guardog every night at midnight?
+2. Use Guardog before dependency installs?
+3. Install a git pre-commit dependency hook?
+4. Add a VirusTotal API key?
+
+Nightly scans and global hooks are off unless you opt in.
 
 ## Usage
 
-**Command line:**
 ```bash
-node ~/guardog/src/index.js analyze lodash npm
-node ~/guardog/src/index.js analyze requests pypi
-node ~/guardog/src/index.js analyze some-sketchy-package npm
+guardog analyze lodash npm
+guardog analyze requests pypi
+guardog batch ./packages.json
+guardog doctor
 ```
 
-**In Claude Code:**
-```
-/guardog lodash
-/guardog requests pypi
+For guarded npm installs, use Guardog as the pre-install wrapper:
+
+```bash
+guardog install left-pad
+guardog install
 ```
 
-**Batch scan a package.json:**
+`guardog install <package>` scans the requested package first. If Guardog returns `BARK`, it blocks the install. Otherwise it runs `npm install` with the same arguments.
+
+## Nightly Scans
+
+Nightly scans are disabled by default. Enable or disable them explicitly:
+
 ```bash
-node ~/guardog/src/index.js batch path/to/package.json
+guardog updates enable
+guardog updates status
+guardog updates disable
 ```
+
+By default, nightly scans search for `package.json` files under your home folder. To limit the scan:
+
+```bash
+GUARDOG_WORKSPACE=~/projects guardog nightly
+```
+
+On macOS/Linux, `guardog updates enable` installs a cron entry. On Windows, it installs a Task Scheduler entry named `GuardogNightlyScan`.
+
+## Install Hooks
+
+Guardog cannot universally intercept every installer on every operating system. The supported cross-platform install-time protection is:
+
+```bash
+guardog install <npm-package>
+```
+
+For git workflows, you can opt into a dependency scan before commits:
+
+```bash
+guardog hooks enable
+```
+
+On Windows, global git hook installation is skipped by default because shell hooks require Git Bash/compatible shell behavior. Use `guardog install` for the portable path.
+
+## VirusTotal
+
+VirusTotal is optional. Without it, Guardog still runs reputation checks, CVE lookups, pattern checks, and threat-intel cache checks.
+
+The free tier is usually enough for light use: 4 requests/minute and 500/day.
+
+Add or update the key with:
+
+```bash
+guardog setup
+```
+
+The key is saved in the user state folder, not inside the installed package.
 
 ## Verdicts
 
 | Verdict | Meaning |
 |---------|---------|
 | SILENT | Safe to install |
-| WHINE | Suspicious — review before installing |
-| BARK | Dangerous — do not install |
+| WHINE | Suspicious; review before installing |
+| BARK | Dangerous; do not install |
 
-## What it checks
+## What It Checks
 
-1. **CVE database** — queries Google's OSV (Open Source Vulnerabilities) for known CVEs
-2. **Package reputation** — checks npm/PyPI/GitHub for metadata signals (age, download count, missing repo, etc.)
-3. **Code pattern analysis** — detects 30+ malicious patterns (eval abuse, obfuscation, credential harvesting, crypto miners)
-4. **VirusTotal** — scans with 70+ antivirus engines (requires free API key, see below)
+1. CVE databases through OSV and related feeds
+2. Package reputation from npm, PyPI, RubyGems, and GitHub metadata
+3. Code pattern analysis for risky package metadata/code snippets
+4. Optional VirusTotal scans when an API key and target are provided
+5. Optional cached threat-intelligence findings
 
-## VirusTotal — highly recommended
+## Cross-Platform Notes
 
-The free tier is enough for everyday use: 4 requests/minute, 500/day.
+The default CLI path is Node-based and works on macOS, Windows, and Linux. Legacy Bash scripts remain for existing users, but the recommended install and setup flow is `npm install -g github:josephtandle/guardog` followed by `guardog setup`.
 
-**Sign up:** https://www.virustotal.com/gui/join-us (takes 2 minutes)
-
-**Add your key:**
-```bash
-echo "VIRUSTOTAL_API_KEY=your_key_here" > ~/guardog/.env
-```
-
-Without VirusTotal, Guardog still runs CVE lookups, reputation checks, and pattern analysis. With it, you also get 70+ antivirus engines on the actual package file.
-
-## Git pre-commit hook
-
-Automatically scans changed dependencies before every commit. Install.sh will offer to set this up globally, or do it manually:
-
-```bash
-mkdir -p ~/guardog/bin/hooks
-cp ~/guardog/bin/git-precommit-hook.sh ~/guardog/bin/hooks/pre-commit
-chmod +x ~/guardog/bin/hooks/pre-commit
-git config --global core.hooksPath ~/guardog/bin/hooks
-```
-
-## npm postinstall hook
-
-Scans packages automatically after every `npm install`. Add to any project's `package.json`:
-
-```json
-{
-  "scripts": {
-    "postinstall": "~/guardog/bin/npm-postinstall-hook.sh"
-  }
-}
-```
-
-## Nightly cron scan
-
-Scans all `package.json` files under your home directory every night:
-
-```bash
-# Add to crontab (crontab -e):
-30 2 * * * ~/guardog/bin/cron-nightly-scan.sh >> ~/guardog/data/cron.log 2>&1
-```
-
-To limit the scan to a specific directory:
-```bash
-GUARDOG_WORKSPACE=~/projects ~/guardog/bin/cron-nightly-scan.sh
-```
-
-## Trusted providers
-
-Common packages (react, express, lodash, etc.) and trusted namespaces (`@babel/*`, `@types/*`, etc.) are whitelisted and skipped for speed. Edit `config/trusted-providers.json` to customize.
-
-## Scoring
-
-| Source | Weight |
-|--------|--------|
-| VirusTotal malicious vote | +30 per vote |
-| VirusTotal suspicious vote | +20 per vote |
-| CVE critical | +25 each |
-| CVE high | +15 each |
-| Malicious pattern (critical) | +30 each |
-| No GitHub repo | +25 |
-| Package age < 7 days | +20 |
-
-Score >= 100: BARK. Score 50-99: WHINE. Score < 50: SILENT.
+Runtime state lives in `~/.guardog` or `%USERPROFILE%\.guardog`, so global installs and package upgrades do not wipe scan history or secrets.
 
 ## License
 

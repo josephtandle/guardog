@@ -1,6 +1,8 @@
 #!/bin/bash
-# Guardog Install Script
-# Installs dependencies and wires up Claude Code skill
+# Guardog legacy install script.
+# Recommended cross-platform install:
+#   npm install -g github:josephtandle/guardog
+#   guardog setup
 
 set -e
 
@@ -11,6 +13,10 @@ HOOKS_DIR="$GUARD_DOG_DIR/bin/hooks"
 echo ""
 echo "🐕 Guardog Installer"
 echo "────────────────────────────────────────"
+echo "Recommended cross-platform path:"
+echo "  npm install -g github:josephtandle/guardog"
+echo "  guardog setup"
+echo ""
 
 # 1. Install npm dependencies
 echo "📦 Installing dependencies..."
@@ -57,14 +63,21 @@ else
   echo "   Skipped. Add it later: echo 'VIRUSTOTAL_API_KEY=your_key' > ~/guardog/.env"
 fi
 
-# 6. Done
+# 6. Run the Node setup wizard when available
+if command -v node >/dev/null 2>&1; then
+  echo ""
+  echo "Starting Guardog setup wizard..."
+  node "$GUARD_DOG_DIR/src/index.js" setup
+fi
+
+# 7. Done
 echo ""
 echo "────────────────────────────────────────"
 echo "✅ Guardog installed!"
 echo ""
 echo "Usage:"
-echo "  node $GUARD_DOG_DIR/src/index.js analyze lodash npm"
-echo "  node $GUARD_DOG_DIR/src/index.js analyze requests pypi"
+echo "  guardog analyze lodash npm"
+echo "  guardog analyze requests pypi"
 echo ""
 if [ -d "$SKILLS_DIR" ]; then
   echo "  Or in Claude Code: /guardog lodash"

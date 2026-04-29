@@ -13,7 +13,8 @@
     "start": "node src/index.js",
     "test": "node tests/test.js",
     "scan": "node bin/scan-deps.js",
-    "cron": "bash bin/cron-nightly-scan.sh"
+    "setup": "node src/index.js setup",
+    "cron": "node bin/nightly-scan.js"
   },
   "files": [
     ".env.example",
@@ -27,16 +28,14 @@
     "examples/batch-example.json",
     "src/",
     "bin/scan-deps.js",
-    "bin/cron-nightly-scan.sh",
+    "bin/nightly-scan.js",
     "bin/git-precommit-hook.sh",
-    "bin/npm-postinstall-hook.sh",
     "bin/run-cso.sh"
   ],
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "better-sqlite3": "^12.6.2",
     "dotenv": "^16.4.5",
     "node-fetch": "^3.3.2"
   },

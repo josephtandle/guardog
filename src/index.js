@@ -4,9 +4,10 @@
  * Main orchestrator that coordinates all modules
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, realpathSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
+import { spawnSync } from 'child_process';
 import dotenv from 'dotenv';
 
 import { VirusTotalScanner } from './virustotal-scanner.js';
@@ -15,9 +16,21 @@ import { CVEChecker } from './cve-checker.js';
 import { PatternAnalyzer } from './pattern-analyzer.js';
 import { DecisionTree } from './decision-tree.js';
 import { TelegramAlert } from './telegram-alert.js';
+import { ensureGuardogHome, guardogDataDir, guardogEnvPath, packageRoot } from './paths.js';
+import {
+  installGitHook,
+  installNightlySchedule,
+  loadUserConfig,
+  printDoctor,
+  removeGitHook,
+  removeNightlySchedule,
+  runSetup,
+  saveUserConfig
+} from './setup.js';
 
 // Load environment variables
 dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env') });
+dotenv.config({ path: guardogEnvPath(), override: true });
 
 export class GuardDog {
   constructor() {
@@ -46,10 +59,47 @@ export class GuardDog {
     this.decisionTree = new DecisionTree(this.config, this.trustedProviders);
     this.telegram = new TelegramAlert(this.config);
 
-    // Ensure data directory exists for scan history
-    this.dataDir = join(dirname(fileURLToPath(import.meta.url)), '../data');
-    if (!existsSync(this.dataDir)) {
-      mkdirSync(this.dataDir, { recursive: true });
+    // Keep runtime state out of the installed package so global installs work
+    // on macOS, Windows, Linux, and read-only npm package directories.
+    ensureGuardogHome();
+    this.dataDir = guardogDataDir();
+  }
+
+  /**
+   * Load history from disk and repair simple malformed-array cases in place.
+   * This keeps GuardDog writing durable evidence even if a previous run left
+   * a trailing extra bracket in the history file.
+   * @param {string} historyPath
+   * @returns {Array<Object>}
+   */
+  loadScanHistory(historyPath) {
+    if (!existsSync(historyPath)) return [];
+
+    const raw = readFileSync(historyPath, 'utf-8').trim();
+    if (!raw) return [];
+
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      const repairedCandidates = [
+        raw.replace(/\]\s*\]+$/s, ']'),
+        raw.slice(0, raw.lastIndexOf(']') + 1),
+      ].filter(Boolean);
+
+      for (const candidate of repairedCandidates) {
+        try {
+          const parsed = JSON.parse(candidate);
+          if (Array.isArray(parsed)) {
+            writeFileSync(historyPath, JSON.stringify(parsed, null, 2));
+            return parsed;
+          }
+        } catch {
+          // keep trying candidates
+        }
+      }
+
+      return [];
     }
   }
 
@@ -181,10 +231,7 @@ export class GuardDog {
   saveScanHistory(result) {
     try {
       const historyPath = join(this.dataDir, 'scan-history.json');
-      let history = [];
-      if (existsSync(historyPath)) {
-        history = JSON.parse(readFileSync(historyPath, 'utf-8'));
-      }
+      let history = this.loadScanHistory(historyPath);
       history.push({
         packageName: result.packageName,
         ecosystem: result.ecosystem,
@@ -296,50 +343,150 @@ export class GuardDog {
   }
 }
 
+function usage() {
+  console.log('Guardog - Package Security Scanner');
+  console.log('');
+  console.log('Usage:');
+  console.log('  guardog setup                         - Run first-time setup wizard');
+  console.log('  guardog doctor                        - Check local configuration');
+  console.log('  guardog test                          - Run system test');
+  console.log('  guardog analyze <pkg> [eco] [target]  - Analyze one package');
+  console.log('  guardog batch <json-file>             - Batch analyze packages');
+  console.log('  guardog install [npm install args]    - Scan, then run npm install');
+  console.log('  guardog nightly                       - Scan package.json files under $HOME');
+  console.log('  guardog updates enable|disable|status - Manage midnight scans');
+  console.log('  guardog hooks enable|disable|status   - Manage git dependency hook');
+}
+
+function packageSpecsFromInstallArgs(args) {
+  return args.filter(arg => {
+    if (!arg || arg.startsWith('-')) return false;
+    if (arg === 'install' || arg === 'i' || arg === 'add') return false;
+    if (arg.includes('/') && !arg.startsWith('@')) return false;
+    return !arg.includes('=');
+  });
+}
+
+async function guardedInstall(args) {
+  const packages = packageSpecsFromInstallArgs(args).map(spec => {
+    const withoutAlias = spec.includes('@npm:') ? spec.split('@npm:').pop() : spec;
+    const atIndex = withoutAlias.startsWith('@') ? withoutAlias.indexOf('@', 1) : withoutAlias.indexOf('@');
+    const name = atIndex > 0 ? withoutAlias.slice(0, atIndex) : withoutAlias;
+    return { name, ecosystem: 'npm' };
+  });
+
+  const guardDog = new GuardDog();
+  if (packages.length > 0) {
+    console.log(`Guardog pre-install scan: ${packages.map(p => p.name).join(', ')}`);
+    const results = await guardDog.batchAnalyze(packages);
+    const dangerous = results.filter(r => r.decision.action === 'BARK');
+    if (dangerous.length > 0) {
+      console.error('\nGuardog blocked install because dangerous package(s) were found.');
+      process.exit(1);
+    }
+  } else {
+    const pkgPath = resolve(process.cwd(), 'package.json');
+    if (existsSync(pkgPath)) {
+      const scan = spawnSync(process.execPath, [join(packageRoot(), 'bin', 'scan-deps.js'), pkgPath], { stdio: 'inherit' });
+      if (scan.status !== 0) {
+        console.error('\nGuardog blocked install because dependency scan failed.');
+        process.exit(scan.status || 1);
+      }
+    } else {
+      console.log('No package names or package.json found; running npm install without a Guardog package scan.');
+    }
+  }
+
+  const npmArgs = args.length > 0 && ['install', 'i', 'add'].includes(args[0]) ? args : ['install', ...args];
+  const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const result = spawnSync(npmCmd, npmArgs, { stdio: 'inherit', shell: false });
+  process.exit(result.status ?? 1);
+}
+
+function updatesCommand(action) {
+  const config = loadUserConfig();
+  if (action === 'enable') {
+    const result = installNightlySchedule();
+    config.nightlyUpdates = result.ok;
+    saveUserConfig(config);
+    console.log(result.message);
+  } else if (action === 'disable') {
+    const result = removeNightlySchedule();
+    config.nightlyUpdates = false;
+    saveUserConfig(config);
+    console.log(result.message);
+  } else {
+    console.log(`Nightly updates: ${config.nightlyUpdates ? 'enabled' : 'disabled'}`);
+    console.log('Default is disabled. Enable with `guardog updates enable`.');
+  }
+}
+
+function hooksCommand(action) {
+  const config = loadUserConfig();
+  if (action === 'enable') {
+    const result = installGitHook();
+    config.gitPreCommitHook = result.ok;
+    saveUserConfig(config);
+    console.log(result.message);
+  } else if (action === 'disable') {
+    const result = removeGitHook();
+    config.gitPreCommitHook = false;
+    saveUserConfig(config);
+    console.log(result.message);
+  } else {
+    console.log(`Git pre-commit hook: ${config.gitPreCommitHook ? 'enabled' : 'disabled'}`);
+    console.log('Guarded installs: use `guardog install <package>` before dependency installs.');
+  }
+}
+
 // CLI interface
-if (import.meta.url === `file://${process.argv[1]}`) {
+const invokedPath = process.argv[1] ? realpathSync(resolve(process.argv[1])) : '';
+if (fileURLToPath(import.meta.url) === invokedPath) {
   const args = process.argv.slice(2);
   const command = args[0];
 
-  const guardDog = new GuardDog();
-
-  if (command === 'test') {
+  if (command === 'setup') {
+    await runSetup();
+  } else if (command === 'doctor') {
+    printDoctor();
+  } else if (command === 'updates') {
+    updatesCommand(args[1] || 'status');
+  } else if (command === 'hooks') {
+    hooksCommand(args[1] || 'status');
+  } else if (command === 'install') {
+    await guardedInstall(args.slice(1));
+  } else if (command === 'nightly') {
+    const result = spawnSync(process.execPath, [join(packageRoot(), 'bin', 'nightly-scan.js')], { stdio: 'inherit' });
+    process.exit(result.status ?? 1);
+  } else if (command === 'test') {
     // Run system test
+    const guardDog = new GuardDog();
     await guardDog.test();
   } else if (command === 'analyze') {
     // Analyze single package
+    const guardDog = new GuardDog();
     const packageName = args[1];
     const ecosystem = args[2] || 'npm';
     const target = args[3];
 
     if (!packageName) {
-      console.error('Usage: node index.js analyze <package-name> [ecosystem] [url/hash]');
+      console.error('Usage: guardog analyze <package-name> [ecosystem] [url/hash]');
       process.exit(1);
     }
 
     await guardDog.analyze(packageName, ecosystem, target);
   } else if (command === 'batch') {
     // Batch analyze from JSON file
+    const guardDog = new GuardDog();
     const filePath = args[1];
     if (!filePath) {
-      console.error('Usage: node index.js batch <json-file>');
+      console.error('Usage: guardog batch <json-file>');
       process.exit(1);
     }
 
     const packages = JSON.parse(readFileSync(filePath, 'utf-8'));
     await guardDog.batchAnalyze(packages);
   } else {
-    console.log('Guard Dog - Package Security Scanner');
-    console.log('');
-    console.log('Usage:');
-    console.log('  node index.js test                           - Run system test');
-    console.log('  node index.js analyze <pkg> [eco] [target]   - Analyze single package');
-    console.log('  node index.js batch <json-file>              - Batch analyze packages');
-    console.log('');
-    console.log('Examples:');
-    console.log('  node index.js test');
-    console.log('  node index.js analyze lodash npm');
-    console.log('  node index.js analyze django pypi');
-    console.log('  node index.js batch packages.json');
+    usage();
   }
 }
