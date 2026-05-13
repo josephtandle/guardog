@@ -66,6 +66,42 @@ export class GuardDog {
   }
 
   /**
+   * Load cached scan history and repair simple malformed-array cases in place.
+   * @param {string} historyPath
+   * @returns {Array<Object>}
+   */
+  loadScanHistory(historyPath) {
+    if (!existsSync(historyPath)) return [];
+
+    const raw = readFileSync(historyPath, 'utf-8').trim();
+    if (!raw) return [];
+
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      const repairedCandidates = [
+        raw.replace(/\]\s*\]+$/s, ']'),
+        raw.slice(0, raw.lastIndexOf(']') + 1),
+      ].filter(Boolean);
+
+      for (const candidate of repairedCandidates) {
+        try {
+          const parsed = JSON.parse(candidate);
+          if (Array.isArray(parsed)) {
+            writeFileSync(historyPath, JSON.stringify(parsed, null, 2));
+            return parsed;
+          }
+        } catch {
+          // keep trying candidates
+        }
+      }
+
+      return [];
+    }
+  }
+
+  /**
    * Scan a package and determine threat level
    * @param {string} packageName - Package name
    * @param {string} ecosystem - 'npm' or 'pypi'
@@ -218,10 +254,7 @@ export class GuardDog {
   saveScanHistory(result) {
     try {
       const historyPath = join(this.dataDir, 'cache', 'scan-history.json');
-      let history = [];
-      if (existsSync(historyPath)) {
-        history = JSON.parse(readFileSync(historyPath, 'utf-8'));
-      }
+      let history = this.loadScanHistory(historyPath);
       history.push({
         packageName: result.packageName,
         ecosystem: result.ecosystem,

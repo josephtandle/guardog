@@ -2,7 +2,7 @@
 # Guard Dog Threat Intelligence Daily Scanner
 # Runs the Node.js threat intel scanner with proper environment
 #
-# LaunchAgent: ai.openclaw.guard-dog-threat-intel (3:00 AM daily)
+# LaunchAgent: ai.myos.guard-dog-threat-intel (legacy alias retained during migration, 3:00 AM daily)
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
