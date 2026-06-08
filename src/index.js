@@ -439,10 +439,8 @@ function hooksCommand(action) {
   }
 }
 
-// CLI interface
-const invokedPath = process.argv[1] ? realpathSync(resolve(process.argv[1])) : '';
-if (fileURLToPath(import.meta.url) === invokedPath) {
-  const args = process.argv.slice(2);
+async function main(argv = process.argv.slice(2)) {
+  const args = argv;
   const command = args[0];
 
   if (command === 'setup') {
@@ -489,4 +487,13 @@ if (fileURLToPath(import.meta.url) === invokedPath) {
   } else {
     usage();
   }
+}
+
+// CLI interface
+const invokedPath = process.argv[1] ? realpathSync(resolve(process.argv[1])) : '';
+if (fileURLToPath(import.meta.url) === invokedPath) {
+  main().catch(error => {
+    console.error(error?.stack || error?.message || String(error));
+    process.exit(1);
+  });
 }
