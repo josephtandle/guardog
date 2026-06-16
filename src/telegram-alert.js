@@ -4,6 +4,9 @@
  */
 
 import fetch from 'node-fetch';
+import { createRequire } from 'module';
+const _require = createRequire(import.meta.url);
+const { sendMessage: _sharedSendMessage } = _require('../../shared/telegram-send.js');
 
 export class TelegramAlert {
   constructor(config) {
@@ -34,28 +37,14 @@ export class TelegramAlert {
     }
 
     const message = this.formatAlertMessage(packageName, decision);
-    
+
     try {
-      const response = await fetch(
-        `https://api.telegram.org/bot${this.botToken}/sendMessage`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: this.chatId,
-            text: message,
-            parse_mode: 'Markdown',
-            disable_web_page_preview: true
-          })
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.text();
-        console.error('Telegram API error:', error);
-        return false;
-      }
-
+      const apiBase = `https://api.telegram.org/bot${this.botToken}`;
+      await _sharedSendMessage(apiBase, this.chatId, message, {
+        agentId: 'guard-dog',
+        messageType: 'alert',
+        extraPayload: { disable_web_page_preview: true },
+      });
       return true;
     } catch (error) {
       console.error('Failed to send Telegram alert:', error.message);

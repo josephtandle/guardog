@@ -22,6 +22,9 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { spawnSync } from 'child_process';
 import dotenv from 'dotenv';
+import { createRequire } from 'module';
+const _require = createRequire(import.meta.url);
+const { sendMessage: _sharedSendMessage } = _require('../../shared/telegram-send.js');
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
@@ -188,26 +191,12 @@ async function sendAlert(downTunnels, restartAttempted = false) {
     `\n\n⏰ ${new Date().toISOString()}`;
 
   try {
-    const response = await fetch(
-      `https://api.telegram.org/bot${botToken}/sendMessage`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: message,
-          parse_mode: 'Markdown',
-          disable_web_page_preview: true,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const err = await response.text();
-      console.error('Telegram API error:', err);
-      return false;
-    }
-
+    const apiBase = `https://api.telegram.org/bot${botToken}`;
+    await _sharedSendMessage(apiBase, chatId, message, {
+      agentId: 'guard-dog',
+      messageType: 'alert',
+      extraPayload: { disable_web_page_preview: true },
+    });
     return true;
   } catch (err) {
     console.error('Failed to send Telegram alert:', err.message);
