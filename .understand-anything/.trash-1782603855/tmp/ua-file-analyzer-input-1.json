@@ -1,0 +1,10 @@
+[
+  {"path": "src/alerts/telegram-alert.js", "lines": 112},
+  {"path": "src/core/decision-tree.js", "lines": 325},
+  {"path": "src/core/guard-dog.js", "lines": 408},
+  {"path": "src/scanners/cve-checker.js", "lines": 175},
+  {"path": "src/scanners/pattern-analyzer.js", "lines": 211},
+  {"path": "src/scanners/reputation-checker.js", "lines": 336},
+  {"path": "src/scanners/threat-intel.js", "lines": 557},
+  {"path": "src/scanners/virustotal-scanner.js", "lines": 147}
+]

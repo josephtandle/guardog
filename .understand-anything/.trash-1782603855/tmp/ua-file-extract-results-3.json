@@ -1,0 +1,559 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 9,
+  "filesSkipped": [],
+  "results": [
+    {
+      "path": ".env.example",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 14,
+      "nonEmptyLines": 11,
+      "definitions": [
+        {
+          "name": "VIRUSTOTAL_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 6,
+          "endLine": 6
+        },
+        {
+          "name": "TELEGRAM_BOT_TOKEN",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 10,
+          "endLine": 10
+        },
+        {
+          "name": "TELEGRAM_CHAT_ID",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 11,
+          "endLine": 11
+        },
+        {
+          "name": "GITHUB_API_TOKEN",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 14,
+          "endLine": 14
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 4
+      }
+    },
+    {
+      "path": "config/config.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 42,
+      "nonEmptyLines": 42,
+      "sections": [
+        {
+          "heading": "virustotal",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "reputation",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "decisionThresholds",
+          "level": 1,
+          "line": 25
+        },
+        {
+          "heading": "cve",
+          "level": 1,
+          "line": 32
+        },
+        {
+          "heading": "patterns",
+          "level": 1,
+          "line": 35
+        },
+        {
+          "heading": "telegram",
+          "level": 1,
+          "line": 38
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "config/trusted-providers.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 33,
+      "nonEmptyLines": 33,
+      "sections": [
+        {
+          "heading": "trustedProviders",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "trustedNamespaces",
+          "level": 1,
+          "line": 18
+        },
+        {
+          "heading": "trustedScopes",
+          "level": 1,
+          "line": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 26,
+      "nonEmptyLines": 18,
+      "sections": [
+        {
+          "heading": "Guard-Dog",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Decision Levels",
+          "level": 2,
+          "line": 6
+        },
+        {
+          "heading": "Companion: /gstack-cso (code-level review)",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Entry Point",
+          "level": 2,
+          "line": 21
+        },
+        {
+          "heading": "Cron",
+          "level": 2,
+          "line": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 6,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "CONTEXT.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 66,
+      "nonEmptyLines": 46,
+      "sections": [
+        {
+          "heading": "Guardog — Project Context",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "What It Is",
+          "level": 2,
+          "line": 4
+        },
+        {
+          "heading": "URLs / Access",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "App Location",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Tech Stack",
+          "level": 2,
+          "line": 21
+        },
+        {
+          "heading": "Environment Variables",
+          "level": 2,
+          "line": 27
+        },
+        {
+          "heading": "Key Endpoints / Commands",
+          "level": 2,
+          "line": 34
+        },
+        {
+          "heading": "Verdicts",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "Known Issues / Next Steps",
+          "level": 2,
+          "line": 50
+        },
+        {
+          "heading": "Files to Know",
+          "level": 2,
+          "line": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 9,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 10
+      }
+    },
+    {
+      "path": "IMPLEMENTATION.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 262,
+      "nonEmptyLines": 217,
+      "sections": [
+        {
+          "heading": "Guard Dog Implementation Summary",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "✅ Completed Components",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "1. Core Scanning Engine (`src/virustotal-scanner.js`)",
+          "level": 3,
+          "line": 5
+        },
+        {
+          "heading": "2. Reputation Research Module (`src/reputation-checker.js`)",
+          "level": 3,
+          "line": 13
+        },
+        {
+          "heading": "3. Decision Tree Logic (`src/decision-tree.js`)",
+          "level": 3,
+          "line": 21
+        },
+        {
+          "heading": "4. Telegram Alerting (`src/telegram-alert.js`)",
+          "level": 3,
+          "line": 31
+        },
+        {
+          "heading": "5. Main Orchestrator (`src/index.js`)",
+          "level": 3,
+          "line": 38
+        },
+        {
+          "heading": "6. Configuration",
+          "level": 3,
+          "line": 47
+        },
+        {
+          "heading": "7. Documentation",
+          "level": 3,
+          "line": 53
+        },
+        {
+          "heading": "8. Test Suite (`tests/test.js`)",
+          "level": 3,
+          "line": 66
+        },
+        {
+          "heading": "📊 Test Results",
+          "level": 2,
+          "line": 73
+        },
+        {
+          "heading": "🎯 Production Ready Features",
+          "level": 2,
+          "line": 94
+        },
+        {
+          "heading": "Token Efficiency",
+          "level": 3,
+          "line": 96
+        },
+        {
+          "heading": "Error Handling",
+          "level": 3,
+          "line": 103
+        },
+        {
+          "heading": "Extensibility",
+          "level": 3,
+          "line": 109
+        },
+        {
+          "heading": "Security",
+          "level": 3,
+          "line": 114
+        },
+        {
+          "heading": "📁 File Structure",
+          "level": 2,
+          "line": 120
+        },
+        {
+          "heading": "🔧 Architecture Decisions",
+          "level": 2,
+          "line": 147
+        },
+        {
+          "heading": "Why Sonnet for Architecture?",
+          "level": 3,
+          "line": 149
+        },
+        {
+          "heading": "Why Haiku/Ollama for Implementation?",
+          "level": 3,
+          "line": 154
+        },
+        {
+          "heading": "Why Modular Design?",
+          "level": 3,
+          "line": 160
+        },
+        {
+          "heading": "🚀 Usage Examples",
+          "level": 2,
+          "line": 165
+        },
+        {
+          "heading": "System Test",
+          "level": 3,
+          "line": 167
+        },
+        {
+          "heading": "Analyze Package",
+          "level": 3,
+          "line": 173
+        },
+        {
+          "heading": "Batch Analysis",
+          "level": 3,
+          "line": 179
+        },
+        {
+          "heading": "Run Test Suite",
+          "level": 3,
+          "line": 185
+        },
+        {
+          "heading": "🎯 Key Features",
+          "level": 2,
+          "line": 191
+        },
+        {
+          "heading": "⚡ Performance",
+          "level": 2,
+          "line": 201
+        },
+        {
+          "heading": "🔒 Security",
+          "level": 2,
+          "line": 209
+        },
+        {
+          "heading": "📦 Dependencies",
+          "level": 2,
+          "line": 217
+        },
+        {
+          "heading": "🎉 Delivery Status",
+          "level": 2,
+          "line": 225
+        },
+        {
+          "heading": "🔮 Future Enhancements (Optional)",
+          "level": 2,
+          "line": 246
+        },
+        {
+          "heading": "📝 Notes",
+          "level": 2,
+          "line": 256
+        }
+      ],
+      "metrics": {
+        "importCount": 10,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 33
+      }
+    },
+    {
+      "path": "INDEX.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 32,
+      "nonEmptyLines": 27,
+      "sections": [
+        {
+          "heading": "guard-dog",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Files",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Directories",
+          "level": 2,
+          "line": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": "QUICKSTART.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 89,
+      "nonEmptyLines": 62,
+      "sections": [
+        {
+          "heading": "🚀 Guard Dog Quick Start",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "5-Minute Setup",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "1. Install Dependencies",
+          "level": 3,
+          "line": 5
+        },
+        {
+          "heading": "2. Configure API Keys",
+          "level": 3,
+          "line": 11
+        },
+        {
+          "heading": "3. Test Installation",
+          "level": 3,
+          "line": 21
+        },
+        {
+          "heading": "4. Run Your First Scan",
+          "level": 3,
+          "line": 26
+        },
+        {
+          "heading": "Common Commands",
+          "level": 2,
+          "line": 35
+        },
+        {
+          "heading": "What Each Action Means",
+          "level": 2,
+          "line": 54
+        },
+        {
+          "heading": "Customization",
+          "level": 2,
+          "line": 60
+        },
+        {
+          "heading": "Troubleshooting",
+          "level": 2,
+          "line": 67
+        },
+        {
+          "heading": "Next Steps",
+          "level": 2,
+          "line": 78
+        },
+        {
+          "heading": "Support",
+          "level": 2,
+          "line": 85
+        }
+      ],
+      "metrics": {
+        "importCount": 11,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 12
+      }
+    },
+    {
+      "path": "SECURITY.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 25,
+      "nonEmptyLines": 16,
+      "sections": [
+        {
+          "heading": "Security Policy",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Reporting a Vulnerability",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Supported Versions",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "Handling Secrets",
+          "level": 2,
+          "line": 22
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    }
+  ]
+}

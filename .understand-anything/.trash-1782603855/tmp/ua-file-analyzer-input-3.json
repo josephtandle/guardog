@@ -1,0 +1,27 @@
+{
+  "projectRoot": "/Users/myos/.myos/workspace/agents/guard-dog",
+  "batch": 3,
+  "batchFiles": [
+    {"path": ".env.example", "language": "config", "sizeLines": 14, "fileCategory": "config"},
+    {"path": "config/config.json", "language": "json", "sizeLines": 42, "fileCategory": "config"},
+    {"path": "config/trusted-providers.json", "language": "json", "sizeLines": 33, "fileCategory": "config"},
+    {"path": "CLAUDE.md", "language": "markdown", "sizeLines": 26, "fileCategory": "docs"},
+    {"path": "CONTEXT.md", "language": "markdown", "sizeLines": 67, "fileCategory": "docs"},
+    {"path": "IMPLEMENTATION.md", "language": "markdown", "sizeLines": 263, "fileCategory": "docs"},
+    {"path": "INDEX.md", "language": "markdown", "sizeLines": 33, "fileCategory": "docs"},
+    {"path": "QUICKSTART.md", "language": "markdown", "sizeLines": 90, "fileCategory": "docs"},
+    {"path": "SECURITY.md", "language": "markdown", "sizeLines": 26, "fileCategory": "docs"}
+  ],
+  "note": "config/decision-rules.json and config/npm-ecosystem-map.json do not exist; analyzed trusted-providers.json instead",
+  "batchImportData": {
+    ".env.example": ["VIRUSTOTAL_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "GITHUB_API_TOKEN"],
+    "config/config.json": ["virustotal", "reputation", "decisionThresholds", "cve", "patterns", "telegram"],
+    "config/trusted-providers.json": ["trustedProviders", "trustedNamespaces", "trustedScopes"],
+    "CLAUDE.md": ["Guard-Dog", "Decision Levels", "BARK", "WHINE", "SILENT", "Entry Point"],
+    "CONTEXT.md": ["What It Is", "URLs", "App Location", "Tech Stack", "Environment Variables", "Key Endpoints", "Verdicts", "Known Issues", "Files to Know"],
+    "IMPLEMENTATION.md": ["Completed Components", "Core Scanning Engine", "Reputation Research Module", "Decision Tree Logic", "Telegram Alerting", "Main Orchestrator", "Configuration", "Documentation", "Test Suite", "Production Ready Features"],
+    "INDEX.md": ["Files", "Directories"],
+    "QUICKSTART.md": ["5-Minute Setup", "Install Dependencies", "Configure API Keys", "Test Installation", "Run Your First Scan", "Common Commands", "What Each Action Means", "Customization", "Troubleshooting", "Next Steps", "Support"],
+    "SECURITY.md": ["Reporting a Vulnerability", "Supported Versions", "Handling Secrets"]
+  }
+}

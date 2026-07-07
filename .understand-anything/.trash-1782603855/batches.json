@@ -1,0 +1,520 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "louvain",
+  "totalFiles": 46,
+  "totalBatches": 5,
+  "exportsByPath": {
+    ".npmignore": [],
+    ".understand-anything/.understandignore": [],
+    "bin/nightly-scan.js": [],
+    "bin/scan-deps.js": [],
+    "bin/tunnel-health-check.js": [],
+    "src/alerts/telegram-alert.js": [
+      "TelegramAlert"
+    ],
+    "src/core/decision-tree.js": [
+      "DecisionTree"
+    ],
+    "src/core/guard-dog.js": [
+      "GuardDog"
+    ],
+    "src/cve-checker.js": [
+      "CVEChecker"
+    ],
+    "src/decision-tree.js": [
+      "DecisionTree"
+    ],
+    "src/index.js": [
+      "GuardDog"
+    ],
+    "src/module-loader.js": [
+      "importModuleFromPath"
+    ],
+    "src/paths.js": [
+      "packageRoot",
+      "guardogHome",
+      "guardogConfigPath",
+      "guardogEnvPath",
+      "guardogDataDir",
+      "ensureGuardogHome"
+    ],
+    "src/pattern-analyzer.js": [
+      "PatternAnalyzer"
+    ],
+    "src/reputation-checker.js": [
+      "ReputationChecker"
+    ],
+    "src/scanners/cve-checker.js": [
+      "CVEChecker"
+    ],
+    "src/scanners/pattern-analyzer.js": [
+      "PatternAnalyzer"
+    ],
+    "src/scanners/reputation-checker.js": [
+      "ReputationChecker"
+    ],
+    "src/scanners/threat-intel.js": [
+      "ThreatIntel"
+    ],
+    "src/scanners/virustotal-scanner.js": [
+      "VirusTotalScanner"
+    ],
+    "src/setup.js": [
+      "loadUserConfig",
+      "saveUserConfig",
+      "installGitHook",
+      "removeGitHook",
+      "installNightlySchedule",
+      "removeNightlySchedule",
+      "runSetup",
+      "printDoctor"
+    ],
+    "src/telegram-alert.js": [
+      "TelegramAlert"
+    ],
+    "src/threat-intel.js": [
+      "ThreatIntel"
+    ],
+    "src/virustotal-scanner.js": [
+      "VirusTotalScanner"
+    ],
+    "tests/test.js": []
+  },
+  "batches": [
+    {
+      "batchIndex": 1,
+      "files": [
+        {
+          "path": "src/alerts/telegram-alert.js",
+          "language": "javascript",
+          "sizeLines": 112,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/core/decision-tree.js",
+          "language": "javascript",
+          "sizeLines": 325,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/core/guard-dog.js",
+          "language": "javascript",
+          "sizeLines": 408,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/scanners/cve-checker.js",
+          "language": "javascript",
+          "sizeLines": 175,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/scanners/pattern-analyzer.js",
+          "language": "javascript",
+          "sizeLines": 211,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/scanners/reputation-checker.js",
+          "language": "javascript",
+          "sizeLines": 336,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/scanners/threat-intel.js",
+          "language": "javascript",
+          "sizeLines": 557,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/scanners/virustotal-scanner.js",
+          "language": "javascript",
+          "sizeLines": 147,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "src/alerts/telegram-alert.js": [],
+        "src/core/decision-tree.js": [],
+        "src/core/guard-dog.js": [
+          "src/alerts/telegram-alert.js",
+          "src/core/decision-tree.js",
+          "src/scanners/cve-checker.js",
+          "src/scanners/pattern-analyzer.js",
+          "src/scanners/reputation-checker.js",
+          "src/scanners/threat-intel.js",
+          "src/scanners/virustotal-scanner.js"
+        ],
+        "src/scanners/cve-checker.js": [],
+        "src/scanners/pattern-analyzer.js": [],
+        "src/scanners/reputation-checker.js": [],
+        "src/scanners/threat-intel.js": [],
+        "src/scanners/virustotal-scanner.js": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 2,
+      "files": [
+        {
+          "path": "src/cve-checker.js",
+          "language": "javascript",
+          "sizeLines": 175,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/decision-tree.js",
+          "language": "javascript",
+          "sizeLines": 325,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/index.js",
+          "language": "javascript",
+          "sizeLines": 499,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/pattern-analyzer.js",
+          "language": "javascript",
+          "sizeLines": 211,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/reputation-checker.js",
+          "language": "javascript",
+          "sizeLines": 336,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/telegram-alert.js",
+          "language": "javascript",
+          "sizeLines": 112,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/virustotal-scanner.js",
+          "language": "javascript",
+          "sizeLines": 147,
+          "fileCategory": "code"
+        },
+        {
+          "path": "tests/test.js",
+          "language": "javascript",
+          "sizeLines": 411,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "src/cve-checker.js": [],
+        "src/decision-tree.js": [],
+        "src/index.js": [
+          "src/cve-checker.js",
+          "src/decision-tree.js",
+          "src/paths.js",
+          "src/pattern-analyzer.js",
+          "src/reputation-checker.js",
+          "src/setup.js",
+          "src/telegram-alert.js",
+          "src/virustotal-scanner.js"
+        ],
+        "src/pattern-analyzer.js": [],
+        "src/reputation-checker.js": [],
+        "src/telegram-alert.js": [],
+        "src/virustotal-scanner.js": [],
+        "tests/test.js": [
+          "src/cve-checker.js",
+          "src/index.js",
+          "src/pattern-analyzer.js"
+        ]
+      },
+      "neighborMap": {
+        "src/index.js": [
+          {
+            "path": "src/paths.js",
+            "batchIndex": 5,
+            "symbols": [
+              "packageRoot",
+              "guardogHome",
+              "guardogConfigPath",
+              "guardogEnvPath",
+              "guardogDataDir",
+              "ensureGuardogHome"
+            ]
+          },
+          {
+            "path": "src/setup.js",
+            "batchIndex": 5,
+            "symbols": [
+              "loadUserConfig",
+              "saveUserConfig",
+              "installGitHook",
+              "removeGitHook",
+              "installNightlySchedule",
+              "removeNightlySchedule",
+              "runSetup",
+              "printDoctor"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 3,
+      "files": [
+        {
+          "path": ".env.example",
+          "language": "config",
+          "sizeLines": 14,
+          "fileCategory": "config"
+        },
+        {
+          "path": "CLAUDE.md",
+          "language": "markdown",
+          "sizeLines": 26,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "CONTEXT.md",
+          "language": "markdown",
+          "sizeLines": 66,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "INDEX.md",
+          "language": "markdown",
+          "sizeLines": 32,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "MANIFEST.md",
+          "language": "markdown",
+          "sizeLines": 64,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "README.md",
+          "language": "markdown",
+          "sizeLines": 115,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "SECURITY.md",
+          "language": "markdown",
+          "sizeLines": 25,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "guardog.md",
+          "language": "markdown",
+          "sizeLines": 48,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "install.sh",
+          "language": "shell",
+          "sizeLines": 85,
+          "fileCategory": "script"
+        },
+        {
+          "path": "package.json",
+          "language": "json",
+          "sizeLines": 60,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        ".env.example": [],
+        "CLAUDE.md": [],
+        "CONTEXT.md": [],
+        "INDEX.md": [],
+        "MANIFEST.md": [],
+        "README.md": [],
+        "SECURITY.md": [],
+        "guardog.md": [],
+        "install.sh": [],
+        "package.json": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 4,
+      "files": [
+        {
+          "path": "bin/consolidate-logs.sh",
+          "language": "shell",
+          "sizeLines": 18,
+          "fileCategory": "script"
+        },
+        {
+          "path": "bin/cron-nightly-scan.sh",
+          "language": "shell",
+          "sizeLines": 50,
+          "fileCategory": "script"
+        },
+        {
+          "path": "bin/git-precommit-hook.sh",
+          "language": "shell",
+          "sizeLines": 53,
+          "fileCategory": "script"
+        },
+        {
+          "path": "bin/npm-postinstall-hook.sh",
+          "language": "shell",
+          "sizeLines": 21,
+          "fileCategory": "script"
+        },
+        {
+          "path": "bin/run-cso.sh",
+          "language": "shell",
+          "sizeLines": 11,
+          "fileCategory": "script"
+        },
+        {
+          "path": "bin/threat-intel-scan.sh",
+          "language": "shell",
+          "sizeLines": 41,
+          "fileCategory": "script"
+        }
+      ],
+      "batchImportData": {
+        "bin/consolidate-logs.sh": [],
+        "bin/cron-nightly-scan.sh": [],
+        "bin/git-precommit-hook.sh": [],
+        "bin/npm-postinstall-hook.sh": [],
+        "bin/run-cso.sh": [],
+        "bin/threat-intel-scan.sh": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 5,
+      "files": [
+        {
+          "path": ".npmignore",
+          "language": "unknown",
+          "sizeLines": 34,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".understand-anything/.understandignore",
+          "language": "unknown",
+          "sizeLines": 37,
+          "fileCategory": "code"
+        },
+        {
+          "path": ".understand-anything/config.json",
+          "language": "json",
+          "sizeLines": 1,
+          "fileCategory": "config"
+        },
+        {
+          "path": "bin/nightly-scan.js",
+          "language": "javascript",
+          "sizeLines": 58,
+          "fileCategory": "code"
+        },
+        {
+          "path": "bin/scan-deps.js",
+          "language": "javascript",
+          "sizeLines": 79,
+          "fileCategory": "code"
+        },
+        {
+          "path": "bin/tunnel-health-check.js",
+          "language": "javascript",
+          "sizeLines": 273,
+          "fileCategory": "code"
+        },
+        {
+          "path": "config/config.json",
+          "language": "json",
+          "sizeLines": 42,
+          "fileCategory": "config"
+        },
+        {
+          "path": "config/trusted-providers.json",
+          "language": "json",
+          "sizeLines": 33,
+          "fileCategory": "config"
+        },
+        {
+          "path": "examples/batch-example.json",
+          "language": "json",
+          "sizeLines": 22,
+          "fileCategory": "config"
+        },
+        {
+          "path": "reports/.digest-template.md",
+          "language": "markdown",
+          "sizeLines": 23,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "src/module-loader.js",
+          "language": "javascript",
+          "sizeLines": 7,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/paths.js",
+          "language": "javascript",
+          "sizeLines": 42,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/setup.js",
+          "language": "javascript",
+          "sizeLines": 226,
+          "fileCategory": "code"
+        },
+        {
+          "path": "src/threat-intel.js",
+          "language": "javascript",
+          "sizeLines": 619,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        ".npmignore": [],
+        ".understand-anything/.understandignore": [],
+        ".understand-anything/config.json": [],
+        "bin/nightly-scan.js": [],
+        "bin/scan-deps.js": [
+          "src/module-loader.js"
+        ],
+        "bin/tunnel-health-check.js": [],
+        "config/config.json": [],
+        "config/trusted-providers.json": [],
+        "examples/batch-example.json": [],
+        "reports/.digest-template.md": [],
+        "src/module-loader.js": [],
+        "src/paths.js": [],
+        "src/setup.js": [
+          "src/paths.js"
+        ],
+        "src/threat-intel.js": []
+      },
+      "neighborMap": {
+        "src/paths.js": [
+          {
+            "path": "src/index.js",
+            "batchIndex": 2,
+            "symbols": [
+              "GuardDog"
+            ]
+          }
+        ],
+        "src/setup.js": [
+          {
+            "path": "src/index.js",
+            "batchIndex": 2,
+            "symbols": [
+              "GuardDog"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

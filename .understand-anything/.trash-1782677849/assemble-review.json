@@ -1,0 +1,155 @@
+{
+  "totalNodes": 52,
+  "totalEdges": 95,
+  "issues": [
+    {
+      "type": "node",
+      "id": "file:consolidate-logs.sh",
+      "description": "Node type is 'script' — not a recognized schema type. Should be remapped to 'file' with category='script'."
+    },
+    {
+      "type": "node",
+      "id": "file:git-precommit-hook.sh",
+      "description": "Node type is 'script' — not a recognized schema type. Should be remapped to 'file' with category='integration'."
+    },
+    {
+      "type": "node",
+      "id": "file:mission-control-trigger.js",
+      "description": "Node type is 'script' — not a recognized schema type. Should be remapped to 'file' with category='integration'."
+    },
+    {
+      "type": "node",
+      "id": "file:npm-postinstall-hook.sh",
+      "description": "Node type is 'script' — not a recognized schema type. Should be remapped to 'file' with category='integration'."
+    },
+    {
+      "type": "node",
+      "id": "file:setup-logging-structure.sh",
+      "description": "Node type is 'script' — not a recognized schema type. Should be remapped to 'file' with category='configuration'."
+    },
+    {
+      "type": "node",
+      "id": "file:threat-intel-daily.js",
+      "description": "Node type is 'script' — not a recognized schema type. Should be remapped to 'file' with category='automation'."
+    },
+    {
+      "type": "node",
+      "id": "file:scan-deps.js",
+      "description": "Node type is 'script' — not a recognized schema type. Should be remapped to 'file' with category='utility'."
+    },
+    {
+      "type": "node",
+      "id": "file:module-loader.js",
+      "description": "Node type is 'utility' — not a recognized schema type. Should be remapped to 'file' with category='utility'."
+    },
+    {
+      "type": "duplicate",
+      "id": "src/virustotal-scanner.js and src/scanners/virustotal-scanner.js",
+      "description": "Two nodes represent the same module in different directory structures. This creates duplicate representation — likely refactoring in progress. Should consolidate to single canonical location."
+    },
+    {
+      "type": "duplicate",
+      "id": "src/decision-tree.js and src/core/decision-tree.js",
+      "description": "Two nodes represent decision tree logic in different locations. Should consolidate to canonical location (src/core/ is more organized)."
+    },
+    {
+      "type": "duplicate",
+      "id": "src/reputation-checker.js and src/scanners/reputation-checker.js",
+      "description": "Reputation checker exists in two locations. Should consolidate to single canonical path."
+    },
+    {
+      "type": "duplicate",
+      "id": "src/cve-checker.js and src/scanners/cve-checker.js",
+      "description": "CVE checker exists in two locations. Should consolidate to single canonical path."
+    },
+    {
+      "type": "duplicate",
+      "id": "src/index.js and src/core/guard-dog.js",
+      "description": "Main orchestrator exists in two forms: src/index.js (legacy) and src/core/guard-dog.js (enhanced). Edges show 'reference' relationship suggesting migration in progress. Need clarity on which is canonical."
+    },
+    {
+      "type": "duplicate",
+      "id": "src/threat-intel.js and src/scanners/threat-intel.js",
+      "description": "Threat intel module exists in two locations with slight variations (src/threat-intel.js has ecosystem-safe NVD filtering). Should consolidate and clarify which version is active."
+    },
+    {
+      "type": "orphan",
+      "id": "document:file_LICENSE",
+      "description": "LICENSE node has only 2 incoming weak edges (from package.json and install.sh) but no meaningful outgoing edges. It's informational but isolated from core execution flows."
+    },
+    {
+      "type": "orphan",
+      "id": "document:file_INDEX.md",
+      "description": "INDEX.md node has only 1 incoming edge from MANIFEST.md (weak). It's auto-generated and has no outgoing edges. Limited relevance to execution flow."
+    },
+    {
+      "type": "weak-edge",
+      "source": "file:bin/tunnel-health-check.js",
+      "target": "file:src/alerts/telegram-alert.js",
+      "description": "Edge labeled 'telegram-send shared module' is vague. Should clarify if this is a direct import or a reference to external module. The node refers to a shared module that may not exist in this repo."
+    },
+    {
+      "type": "semantic",
+      "id": "src/index.js vs src/core/guard-dog.js",
+      "description": "Two competing implementations of GuardDog orchestrator. Edge type 'reference' suggests alternative, but CLI entry points (bin/mission-control-trigger.js, bin/threat-intel-daily.js, bin/scan-deps.js) need clarification on which implementation they actually use."
+    },
+    {
+      "type": "semantic",
+      "id": "file:src/alerts/telegram-alert.js reverse edge",
+      "description": "Telegram alert has incoming edge from core/guard-dog.js and outgoing edge to (same node) in analyze flow. Circular reference logic is valid but indicates tight coupling. Check for testability and mock requirements."
+    },
+    {
+      "type": "naming",
+      "id": "file:file_install.sh",
+      "description": "Node ID 'file:file_install.sh' has double 'file:file_' prefix. Should be 'file:install.sh' for consistency."
+    },
+    {
+      "type": "naming",
+      "id": "config:file_*",
+      "description": "Config nodes use 'config:file_' prefix (e.g., 'config:file_package.json'). Inconsistent with other files which use 'file:file_' or 'file:'. Should standardize to either 'config:' or 'file:' prefix only."
+    },
+    {
+      "type": "naming",
+      "id": "document:file_*",
+      "description": "Document nodes use 'document:file_' prefix (e.g., 'document:file_README.md'). Inconsistent. Should standardize to either 'document:' or 'file:' prefix only."
+    },
+    {
+      "type": "missing-edge",
+      "source": "file:bin/nightly-scan.js",
+      "target": "file:src/core/guard-dog.js",
+      "description": "bin/nightly-scan.js spawns scan-deps.js which imports index.js, but nightly-scan.js may also need direct reference to GuardDog class. Check if nightly-scan.js imports core/guard-dog.js directly."
+    },
+    {
+      "type": "missing-edge",
+      "source": "file:bin/threat-intel-daily.js",
+      "target": "file:src/scanners/threat-intel.js",
+      "description": "threat-intel-daily.js is documented as using ThreatIntel class but has no edge to either src/threat-intel.js or src/scanners/threat-intel.js. Should add explicit import edge."
+    },
+    {
+      "type": "missing-edge",
+      "source": "file:src/index.js",
+      "target": "file:src/scanners/pattern-analyzer.js",
+      "description": "src/index.js imports PatternAnalyzer but edge points to src/pattern-analyzer.js. Need edge to src/scanners/pattern-analyzer.js if that's where canonical version lives."
+    },
+    {
+      "type": "missing-configuration",
+      "id": "file:.env",
+      "description": "Node for .env exists but has no incoming edges from scripts that load it. Should have edges from src/setup.js, GuardDog classes, and telegram-alert.js showing environment variable dependencies."
+    }
+  ],
+  "recommendations": [
+    "REFACTOR: Consolidate duplicate scanner modules. Choose canonical locations: use src/scanners/ for all scanner implementations (virustotal, reputation, cve, threat-intel, pattern). Redirect src/index.js to import from canonical locations.",
+    "REFACTOR: Consolidate src/index.js and src/core/guard-dog.js into single GuardDog class. If enhanced version (core) is the target, migrate all callers to src/core/guard-dog.js and delete src/index.js, or clearly document the legacy vs. enhanced distinction.",
+    "NORMALIZE: Fix node ID prefixes. Use consistent naming: 'file:path', 'config:path', 'document:path' (no double 'file:file_' or 'config:file_'). Rebuild graph with corrected IDs.",
+    "ADD EDGES: Create explicit edges from bin/ scripts to their actual imports. Trace threat-intel-daily.js, mission-control-trigger.js, and bin/nightly-scan.js to verify they correctly reference the active implementation (src/index.js vs src/core/guard-dog.js).",
+    "ADD EDGES: Add edges showing environment variable dependencies. src/.env should have outgoing edges to all modules that read VIRUSTOTAL_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, GITHUB_API_TOKEN.",
+    "CLARIFY: Document which ThreatIntel version is canonical (src/threat-intel.js with ecosystem-safe NVD filtering vs. src/scanners/threat-intel.js). Add note to threat-intel-daily.js showing which it uses.",
+    "VALIDATION: Verify that all shell scripts (consolidate-logs.sh, git-precommit-hook.sh, npm-postinstall-hook.sh, setup-logging-structure.sh, cron-nightly-scan.sh) actually exist and have correct paths. Some may be outdated or moved to bin/.",
+    "DOCUMENTATION: Add a layer diagram showing: CLI entry points (bin/) → Main orchestrator (src/index.js or src/core/guard-dog.js) → Scanners (src/scanners/) → Config (config/). Currently unclear.",
+    "REVIEW: Check if tunnel-health-check.js actually belongs in guard-dog project or if it's a reference to external module. The 'telegram-send shared module' reference needs clarification.",
+    "CLEANUP: Remove or archive orphaned documents (LICENSE, INDEX.md have minimal edges). If they're essential, add edges showing dependencies or references from the main flow.",
+    "TESTING: Add test node and edge relationships showing test coverage. Currently no test files appear in graph (tests/ directory mentioned in .gitignore but no nodes exist).",
+    "COMPLEXITY: Review why all nodes default to 'moderate' complexity. This is too coarse. Differentiate between simple utilities (module-loader, paths) and complex orchestrators (guard-dog, decision-tree)."
+  ],
+  "summary": "The graph has 52 nodes with reasonable connectivity (95 edges), but is fragmented by duplicate implementations and inconsistent naming. Primary issues: (1) Multiple versions of core modules (GuardDog, scanners) exist simultaneously without clear canonical paths; (2) Node ID prefixes are inconsistent ('file:file_', 'config:file_', 'document:file_'); (3) 8 nodes use invalid types ('script', 'utility', 'configuration') that require remapping; (4) Several key edges are missing between bin/ scripts and their actual imports, making execution flow unclear; (5) Environment variable dependencies are not explicitly modeled; (6) No test coverage is represented. The refactoring from src/ to src/core/scanners/ structure appears incomplete — both old and new paths coexist, creating ambiguity about which implementation is active. After consolidating duplicates and normalizing IDs, the graph should be re-assembled to clarify the true architecture."
+}

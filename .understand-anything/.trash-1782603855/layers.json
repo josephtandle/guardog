@@ -1,0 +1,102 @@
+[
+  {
+    "id": "layer:core-orchestration",
+    "name": "Core Orchestration",
+    "description": "Main scanner orchestration and risk-scoring logic. Includes the primary orchestrator class that coordinates all scanners, the decision tree that classifies verdicts (SILENT/WHINE/BARK), and the flat src/ CLI entry point which duplicates this orchestration for the primary npm module.",
+    "nodeIds": [
+      "file:src/core/guard-dog.js",
+      "file:src/core/decision-tree.js",
+      "file:src/index.js"
+    ]
+  },
+  {
+    "id": "layer:scanners",
+    "name": "Scanners",
+    "description": "Individual security scanners covering CVE/OSV lookup, static code pattern analysis, package reputation across registries, threat intelligence aggregation, and VirusTotal malware detection. Includes both the structured src/scanners/ copies and their flat src/ counterparts used by the primary CLI module.",
+    "nodeIds": [
+      "file:src/scanners/cve-checker.js",
+      "file:src/scanners/pattern-analyzer.js",
+      "file:src/scanners/reputation-checker.js",
+      "file:src/scanners/threat-intel.js",
+      "file:src/scanners/virustotal-scanner.js",
+      "file:src/cve-checker.js",
+      "file:src/decision-tree.js",
+      "file:src/pattern-analyzer.js",
+      "file:src/reputation-checker.js",
+      "file:src/virustotal-scanner.js",
+      "file:src/threat-intel.js"
+    ]
+  },
+  {
+    "id": "layer:alerts",
+    "name": "Alerts",
+    "description": "Notification layer responsible for delivering Telegram bot alerts when packages reach BARK-level danger. Includes both the structured src/alerts/ version and its flat src/ counterpart.",
+    "nodeIds": [
+      "file:src/alerts/telegram-alert.js",
+      "file:src/telegram-alert.js"
+    ]
+  },
+  {
+    "id": "layer:cli-and-automation",
+    "name": "CLI and Automation",
+    "description": "CLI entry points, cron jobs, git hooks, npm hooks, and operational scripts. Covers nightly dependency scanning, log archival, pre-commit enforcement, postinstall scanning, threat intel scheduling, tunnel health monitoring, and the legacy installer.",
+    "nodeIds": [
+      "file:bin/consolidate-logs.sh",
+      "file:bin/cron-nightly-scan.sh",
+      "file:bin/git-precommit-hook.sh",
+      "file:bin/nightly-scan.js",
+      "file:bin/npm-postinstall-hook.sh",
+      "file:bin/run-cso.sh",
+      "file:bin/scan-deps.js",
+      "file:bin/threat-intel-scan.sh",
+      "file:bin/tunnel-health-check.js",
+      "file:install.sh"
+    ]
+  },
+  {
+    "id": "layer:infrastructure-utilities",
+    "name": "Infrastructure and Utilities",
+    "description": "Low-level support modules: path resolution and directory initialization for the guard-dog home directory, the interactive setup wizard managing config persistence and hook installation, and the ESM dynamic module loader utility.",
+    "nodeIds": [
+      "file:src/module-loader.js",
+      "file:src/paths.js",
+      "file:src/setup.js"
+    ]
+  },
+  {
+    "id": "layer:configuration",
+    "name": "Configuration",
+    "description": "Runtime and packaging configuration. Includes the main runtime config (thresholds, API settings, verdict cutoffs), the trusted-providers allowlist, npm package manifest, publish ignore rules, secrets template, and the batch scan example payload.",
+    "nodeIds": [
+      "config:.env.example",
+      "config:package.json",
+      "config:.npmignore",
+      "config:config/config.json",
+      "config:config/trusted-providers.json",
+      "config:examples/batch-example.json"
+    ]
+  },
+  {
+    "id": "layer:documentation",
+    "name": "Documentation",
+    "description": "All project documentation: public README, project context, operations manifest, directory index, security disclosure policy, Claude Code skill definition for the /guardog slash command, agent instructions (CLAUDE.md), and the nightly digest report template.",
+    "nodeIds": [
+      "document:README.md",
+      "document:CONTEXT.md",
+      "document:MANIFEST.md",
+      "document:INDEX.md",
+      "document:SECURITY.md",
+      "document:CLAUDE.md",
+      "document:guardog.md",
+      "document:reports/.digest-template.md"
+    ]
+  },
+  {
+    "id": "layer:tests",
+    "name": "Tests",
+    "description": "Unit and integration test suite covering CVE checking, reputation signals, pattern detection, decision tree evaluation, Telegram message formatting, and scan history persistence.",
+    "nodeIds": [
+      "file:tests/test.js"
+    ]
+  }
+]

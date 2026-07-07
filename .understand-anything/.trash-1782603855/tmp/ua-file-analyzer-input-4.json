@@ -1,0 +1,41 @@
+{
+  "projectRoot": "/Users/myos/.myos/workspace/agents/guard-dog",
+  "batchFiles": [
+    {
+      "path": "bin/consolidate-logs.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "sizeLines": 18
+    },
+    {
+      "path": "bin/cron-nightly-scan.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "sizeLines": 50
+    },
+    {
+      "path": "bin/git-precommit-hook.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "sizeLines": 53
+    },
+    {
+      "path": "bin/npm-postinstall-hook.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "sizeLines": 21
+    },
+    {
+      "path": "bin/run-cso.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "sizeLines": 11
+    },
+    {
+      "path": "bin/threat-intel-scan.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "sizeLines": 41
+    }
+  ]
+}

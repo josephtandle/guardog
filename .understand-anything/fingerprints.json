@@ -1,0 +1,1502 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "5377d73a8ccc16ffb4f23644b4ff133e885369b1",
+  "generatedAt": "2026-06-28T20:17:29.056Z",
+  "files": {
+    "src/threat-intel.js": {
+      "filePath": "src/threat-intel.js",
+      "contentHash": "02bf38c54afe8daa536f9bdd41c875a334100d71616ca950108b7ce84d277cac",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ThreatIntel",
+          "methods": [
+            "constructor",
+            "loadCache",
+            "saveCache",
+            "safeFetch",
+            "queryOSV",
+            "cleanVersion",
+            "queryOSVBatch",
+            "normalizeOSV",
+            "queryGitHubAdvisories",
+            "normalizeGitHubAdvisory",
+            "queryNVD",
+            "normalizeNVD",
+            "queryCISA",
+            "fetchAll",
+            "queryPackages",
+            "crossReference",
+            "lookupPackage",
+            "parseSeverity",
+            "scoreToseverity"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 603
+        }
+      ],
+      "imports": [
+        {
+          "source": "fs",
+          "specifiers": [
+            "readFileSync",
+            "writeFileSync",
+            "existsSync",
+            "mkdirSync"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "dirname",
+            "join"
+          ]
+        },
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        }
+      ],
+      "exports": [
+        "ThreatIntel"
+      ],
+      "totalLines": 620,
+      "hasStructuralAnalysis": true
+    },
+    "src/scanners/threat-intel.js": {
+      "filePath": "src/scanners/threat-intel.js",
+      "contentHash": "bf142ded308c6e45c68316c65cf717692864fa3ae38274b44281263bcc454726",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ThreatIntel",
+          "methods": [
+            "constructor",
+            "loadCache",
+            "saveCache",
+            "safeFetch",
+            "queryOSV",
+            "queryOSVBatch",
+            "normalizeOSV",
+            "queryGitHubAdvisories",
+            "normalizeGitHubAdvisory",
+            "queryNVD",
+            "normalizeNVD",
+            "queryCISA",
+            "fetchAll",
+            "queryPackages",
+            "crossReference",
+            "lookupPackage",
+            "parseSeverity",
+            "scoreToseverity"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 540
+        }
+      ],
+      "imports": [
+        {
+          "source": "fs",
+          "specifiers": [
+            "readFileSync",
+            "writeFileSync",
+            "existsSync",
+            "mkdirSync"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "dirname",
+            "join"
+          ]
+        },
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        }
+      ],
+      "exports": [
+        "ThreatIntel"
+      ],
+      "totalLines": 558,
+      "hasStructuralAnalysis": true
+    },
+    "src/index.js": {
+      "filePath": "src/index.js",
+      "contentHash": "a132e2499f668ec9483fefee9455fb347244d952123eaa70bfd80f734f12b6aa",
+      "functions": [
+        {
+          "name": "usage",
+          "params": [],
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "packageSpecsFromInstallArgs",
+          "params": [
+            "args"
+          ],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "guardedInstall",
+          "params": [
+            "args"
+          ],
+          "exported": false,
+          "lineCount": 35
+        },
+        {
+          "name": "updatesCommand",
+          "params": [
+            "action"
+          ],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "hooksCommand",
+          "params": [
+            "action"
+          ],
+          "exported": false,
+          "lineCount": 17
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 49
+        }
+      ],
+      "classes": [
+        {
+          "name": "GuardDog",
+          "methods": [
+            "constructor",
+            "loadScanHistory",
+            "analyze",
+            "saveScanHistory",
+            "batchAnalyze",
+            "test"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 310
+        }
+      ],
+      "imports": [
+        {
+          "source": "fs",
+          "specifiers": [
+            "readFileSync",
+            "writeFileSync",
+            "existsSync",
+            "realpathSync"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "dirname",
+            "join",
+            "resolve"
+          ]
+        },
+        {
+          "source": "child_process",
+          "specifiers": [
+            "spawnSync"
+          ]
+        },
+        {
+          "source": "dotenv",
+          "specifiers": [
+            "dotenv"
+          ]
+        },
+        {
+          "source": "./virustotal-scanner.js",
+          "specifiers": [
+            "VirusTotalScanner"
+          ]
+        },
+        {
+          "source": "./reputation-checker.js",
+          "specifiers": [
+            "ReputationChecker"
+          ]
+        },
+        {
+          "source": "./cve-checker.js",
+          "specifiers": [
+            "CVEChecker"
+          ]
+        },
+        {
+          "source": "./pattern-analyzer.js",
+          "specifiers": [
+            "PatternAnalyzer"
+          ]
+        },
+        {
+          "source": "./decision-tree.js",
+          "specifiers": [
+            "DecisionTree"
+          ]
+        },
+        {
+          "source": "./telegram-alert.js",
+          "specifiers": [
+            "TelegramAlert"
+          ]
+        },
+        {
+          "source": "./paths.js",
+          "specifiers": [
+            "ensureGuardogHome",
+            "guardogDataDir",
+            "guardogEnvPath",
+            "packageRoot"
+          ]
+        },
+        {
+          "source": "./setup.js",
+          "specifiers": [
+            "installGitHook",
+            "installNightlySchedule",
+            "loadUserConfig",
+            "printDoctor",
+            "removeGitHook",
+            "removeNightlySchedule",
+            "runSetup",
+            "saveUserConfig"
+          ]
+        }
+      ],
+      "exports": [
+        "GuardDog"
+      ],
+      "totalLines": 500,
+      "hasStructuralAnalysis": true
+    },
+    "src/core/guard-dog.js": {
+      "filePath": "src/core/guard-dog.js",
+      "contentHash": "8e4fb71535de642e78670b1721355a5728891ddfa65343f5abd364e8a09d268b",
+      "functions": [],
+      "classes": [
+        {
+          "name": "GuardDog",
+          "methods": [
+            "constructor",
+            "loadScanHistory",
+            "analyze",
+            "saveScanHistory",
+            "batchAnalyze",
+            "test"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 347
+        }
+      ],
+      "imports": [
+        {
+          "source": "fs",
+          "specifiers": [
+            "readFileSync",
+            "writeFileSync",
+            "mkdirSync",
+            "existsSync"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "dirname",
+            "join"
+          ]
+        },
+        {
+          "source": "dotenv",
+          "specifiers": [
+            "dotenv"
+          ]
+        },
+        {
+          "source": "../scanners/virustotal-scanner.js",
+          "specifiers": [
+            "VirusTotalScanner"
+          ]
+        },
+        {
+          "source": "../scanners/reputation-checker.js",
+          "specifiers": [
+            "ReputationChecker"
+          ]
+        },
+        {
+          "source": "../scanners/cve-checker.js",
+          "specifiers": [
+            "CVEChecker"
+          ]
+        },
+        {
+          "source": "../scanners/pattern-analyzer.js",
+          "specifiers": [
+            "PatternAnalyzer"
+          ]
+        },
+        {
+          "source": "./decision-tree.js",
+          "specifiers": [
+            "DecisionTree"
+          ]
+        },
+        {
+          "source": "../alerts/telegram-alert.js",
+          "specifiers": [
+            "TelegramAlert"
+          ]
+        },
+        {
+          "source": "../scanners/threat-intel.js",
+          "specifiers": [
+            "ThreatIntel"
+          ]
+        }
+      ],
+      "exports": [
+        "GuardDog"
+      ],
+      "totalLines": 409,
+      "hasStructuralAnalysis": true
+    },
+    "src/reputation-checker.js": {
+      "filePath": "src/reputation-checker.js",
+      "contentHash": "a01300b5444c94ee71bed3205fd3027d550eb76d5835cf49456d7315bbc83b41",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ReputationChecker",
+          "methods": [
+            "constructor",
+            "checkReputation",
+            "checkNpmRegistry",
+            "checkPyPiRegistry",
+            "checkRubyGemsRegistry",
+            "checkGitHub",
+            "parseRepository",
+            "analyzeSignals"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 329
+        }
+      ],
+      "imports": [
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        }
+      ],
+      "exports": [
+        "ReputationChecker"
+      ],
+      "totalLines": 337,
+      "hasStructuralAnalysis": true
+    },
+    "src/scanners/reputation-checker.js": {
+      "filePath": "src/scanners/reputation-checker.js",
+      "contentHash": "23673e9928aa21e85cc10299c2d145f2a35abaf0b619bee1869be26b519df2c2",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ReputationChecker",
+          "methods": [
+            "constructor",
+            "checkReputation",
+            "checkNpmRegistry",
+            "checkPyPiRegistry",
+            "checkRubyGemsRegistry",
+            "checkGitHub",
+            "parseRepository",
+            "analyzeSignals"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 329
+        }
+      ],
+      "imports": [
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        }
+      ],
+      "exports": [
+        "ReputationChecker"
+      ],
+      "totalLines": 337,
+      "hasStructuralAnalysis": true
+    },
+    "src/core/decision-tree.js": {
+      "filePath": "src/core/decision-tree.js",
+      "contentHash": "1d783918864501fa36d5c454f6af23a4d35e7b1300e784330940a2627fead39b",
+      "functions": [],
+      "classes": [
+        {
+          "name": "DecisionTree",
+          "methods": [
+            "constructor",
+            "evaluate",
+            "isTrustedProvider",
+            "evaluateVirusTotal",
+            "evaluateReputation",
+            "evaluateCVEs",
+            "evaluatePatterns",
+            "formatDecision"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 320
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "DecisionTree"
+      ],
+      "totalLines": 326,
+      "hasStructuralAnalysis": true
+    },
+    "src/decision-tree.js": {
+      "filePath": "src/decision-tree.js",
+      "contentHash": "1d783918864501fa36d5c454f6af23a4d35e7b1300e784330940a2627fead39b",
+      "functions": [],
+      "classes": [
+        {
+          "name": "DecisionTree",
+          "methods": [
+            "constructor",
+            "evaluate",
+            "isTrustedProvider",
+            "evaluateVirusTotal",
+            "evaluateReputation",
+            "evaluateCVEs",
+            "evaluatePatterns",
+            "formatDecision"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 320
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "DecisionTree"
+      ],
+      "totalLines": 326,
+      "hasStructuralAnalysis": true
+    },
+    "bin/tunnel-health-check.js": {
+      "filePath": "bin/tunnel-health-check.js",
+      "contentHash": "832afb1a23544ac915dda794a59abdd7c4fbfbe02836ee5f53be82b563cdb3e4",
+      "functions": [
+        {
+          "name": "legacyTunnelLabel",
+          "params": [
+            "suffix"
+          ],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "isAlertSuppressed",
+          "params": [],
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "markAlertSent",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "clearAlertState",
+          "params": [],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "probeTunnel",
+          "params": [
+            "tunnel"
+          ],
+          "exported": false,
+          "lineCount": 20
+        },
+        {
+          "name": "restartTunnel",
+          "params": [
+            "tunnel"
+          ],
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "sleep",
+          "params": [
+            "ms"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "sendAlert",
+          "params": [
+            "downTunnels"
+          ],
+          "exported": false,
+          "lineCount": 47
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        },
+        {
+          "source": "fs",
+          "specifiers": [
+            "readFileSync",
+            "writeFileSync",
+            "existsSync",
+            "unlinkSync"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "dirname",
+            "join"
+          ]
+        },
+        {
+          "source": "child_process",
+          "specifiers": [
+            "spawnSync"
+          ]
+        },
+        {
+          "source": "dotenv",
+          "specifiers": [
+            "dotenv"
+          ]
+        },
+        {
+          "source": "module",
+          "specifiers": [
+            "createRequire"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 274,
+      "hasStructuralAnalysis": true
+    },
+    "src/setup.js": {
+      "filePath": "src/setup.js",
+      "contentHash": "bcebffd3a6e578aadb45e404eea5f22443b88d1bd32a4ec9da8709423014e7dd",
+      "functions": [
+        {
+          "name": "readJson",
+          "params": [
+            "path",
+            "fallback"
+          ],
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "loadUserConfig",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "saveUserConfig",
+          "params": [
+            "config"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "yes",
+          "params": [
+            "answer"
+          ],
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "installGitHook",
+          "params": [],
+          "exported": true,
+          "lineCount": 30
+        },
+        {
+          "name": "removeGitHook",
+          "params": [],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "installNightlySchedule",
+          "params": [],
+          "exported": true,
+          "lineCount": 37
+        },
+        {
+          "name": "removeNightlySchedule",
+          "params": [],
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "runSetup",
+          "params": [],
+          "exported": true,
+          "lineCount": 51
+        },
+        {
+          "name": "printDoctor",
+          "params": [],
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fs",
+          "specifiers": [
+            "existsSync",
+            "readFileSync",
+            "writeFileSync"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "join"
+          ]
+        },
+        {
+          "source": "child_process",
+          "specifiers": [
+            "spawnSync"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "readline/promises",
+          "specifiers": [
+            "readline"
+          ]
+        },
+        {
+          "source": "process",
+          "specifiers": [
+            "input",
+            "output"
+          ]
+        },
+        {
+          "source": "./paths.js",
+          "specifiers": [
+            "ensureGuardogHome",
+            "guardogConfigPath",
+            "guardogEnvPath",
+            "guardogHome",
+            "packageRoot"
+          ]
+        }
+      ],
+      "exports": [
+        "loadUserConfig",
+        "saveUserConfig",
+        "installGitHook",
+        "removeGitHook",
+        "installNightlySchedule",
+        "removeNightlySchedule",
+        "runSetup",
+        "printDoctor"
+      ],
+      "totalLines": 227,
+      "hasStructuralAnalysis": true
+    },
+    "src/pattern-analyzer.js": {
+      "filePath": "src/pattern-analyzer.js",
+      "contentHash": "89e15e5e1527dcb9fd9b96c9685d88fa5da092633bea50cba5a2e7516f76e68f",
+      "functions": [],
+      "classes": [
+        {
+          "name": "PatternAnalyzer",
+          "methods": [
+            "constructor",
+            "analyzeCode",
+            "analyzeFiles",
+            "calculateScore",
+            "formatResults"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 206
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "PatternAnalyzer"
+      ],
+      "totalLines": 212,
+      "hasStructuralAnalysis": true
+    },
+    "src/scanners/pattern-analyzer.js": {
+      "filePath": "src/scanners/pattern-analyzer.js",
+      "contentHash": "89e15e5e1527dcb9fd9b96c9685d88fa5da092633bea50cba5a2e7516f76e68f",
+      "functions": [],
+      "classes": [
+        {
+          "name": "PatternAnalyzer",
+          "methods": [
+            "constructor",
+            "analyzeCode",
+            "analyzeFiles",
+            "calculateScore",
+            "formatResults"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 206
+        }
+      ],
+      "imports": [],
+      "exports": [
+        "PatternAnalyzer"
+      ],
+      "totalLines": 212,
+      "hasStructuralAnalysis": true
+    },
+    "src/cve-checker.js": {
+      "filePath": "src/cve-checker.js",
+      "contentHash": "64f5c886e877b6ffd96d14e41fbf3b1621ad5fd492905f4b8e9aaee951496a8e",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CVEChecker",
+          "methods": [
+            "constructor",
+            "checkCVEs",
+            "checkOSV",
+            "parseSeverity",
+            "updateSeverityCounts",
+            "calculateThreatScore"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 168
+        }
+      ],
+      "imports": [
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        }
+      ],
+      "exports": [
+        "CVEChecker"
+      ],
+      "totalLines": 176,
+      "hasStructuralAnalysis": true
+    },
+    "src/scanners/cve-checker.js": {
+      "filePath": "src/scanners/cve-checker.js",
+      "contentHash": "64f5c886e877b6ffd96d14e41fbf3b1621ad5fd492905f4b8e9aaee951496a8e",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CVEChecker",
+          "methods": [
+            "constructor",
+            "checkCVEs",
+            "checkOSV",
+            "parseSeverity",
+            "updateSeverityCounts",
+            "calculateThreatScore"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 168
+        }
+      ],
+      "imports": [
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        }
+      ],
+      "exports": [
+        "CVEChecker"
+      ],
+      "totalLines": 176,
+      "hasStructuralAnalysis": true
+    },
+    "src/scanners/virustotal-scanner.js": {
+      "filePath": "src/scanners/virustotal-scanner.js",
+      "contentHash": "13aaf351763103ce7e89a0725d9c9678d2f48da83f9eab2d0617990d1221a280",
+      "functions": [],
+      "classes": [
+        {
+          "name": "VirusTotalScanner",
+          "methods": [
+            "constructor",
+            "scan",
+            "scanUrl",
+            "getFileReport",
+            "parseResults"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 140
+        }
+      ],
+      "imports": [
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        }
+      ],
+      "exports": [
+        "VirusTotalScanner"
+      ],
+      "totalLines": 148,
+      "hasStructuralAnalysis": true
+    },
+    "src/virustotal-scanner.js": {
+      "filePath": "src/virustotal-scanner.js",
+      "contentHash": "13aaf351763103ce7e89a0725d9c9678d2f48da83f9eab2d0617990d1221a280",
+      "functions": [],
+      "classes": [
+        {
+          "name": "VirusTotalScanner",
+          "methods": [
+            "constructor",
+            "scan",
+            "scanUrl",
+            "getFileReport",
+            "parseResults"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 140
+        }
+      ],
+      "imports": [
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        }
+      ],
+      "exports": [
+        "VirusTotalScanner"
+      ],
+      "totalLines": 148,
+      "hasStructuralAnalysis": true
+    },
+    "package-lock.json": {
+      "filePath": "package-lock.json",
+      "contentHash": "444ea8cefe0792d40207e5e958488f1c32472d9fc67ae5386c419e0c618a1f00",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 129,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "815d062c0346c3ac14c8c00cab791b15dfa7f031337138677bc5796b1561ded5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 116,
+      "hasStructuralAnalysis": true
+    },
+    "src/alerts/telegram-alert.js": {
+      "filePath": "src/alerts/telegram-alert.js",
+      "contentHash": "6673e235d9e02e305594df7638c8ce85d45edca712fbfd5af3459e75c3476def",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TelegramAlert",
+          "methods": [
+            "constructor",
+            "sendDangerAlert",
+            "formatAlertMessage",
+            "testConnection"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 102
+        }
+      ],
+      "imports": [
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        },
+        {
+          "source": "module",
+          "specifiers": [
+            "createRequire"
+          ]
+        }
+      ],
+      "exports": [
+        "TelegramAlert"
+      ],
+      "totalLines": 113,
+      "hasStructuralAnalysis": true
+    },
+    "src/telegram-alert.js": {
+      "filePath": "src/telegram-alert.js",
+      "contentHash": "c3b6e5aeffc02945acc96ff6ed96a7140c6cf0249cd46a7d94fb48f9ae55bd85",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TelegramAlert",
+          "methods": [
+            "constructor",
+            "sendDangerAlert",
+            "formatAlertMessage",
+            "testConnection"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 102
+        }
+      ],
+      "imports": [
+        {
+          "source": "node-fetch",
+          "specifiers": [
+            "fetch"
+          ]
+        },
+        {
+          "source": "module",
+          "specifiers": [
+            "createRequire"
+          ]
+        }
+      ],
+      "exports": [
+        "TelegramAlert"
+      ],
+      "totalLines": 113,
+      "hasStructuralAnalysis": true
+    },
+    "install.sh": {
+      "filePath": "install.sh",
+      "contentHash": "78f714bb77ef546203e0f9a3247a92dad313684d83fbe24fb5e4ff49bac11ccd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 86,
+      "hasStructuralAnalysis": true
+    },
+    "bin/scan-deps.js": {
+      "filePath": "bin/scan-deps.js",
+      "contentHash": "294fcd889bbd1a7e2e61048036f93181bc863b1932f5a2f20aae5e9fc0ba4bf3",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 55
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fs",
+          "specifiers": [
+            "readFileSync",
+            "existsSync"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "resolve",
+            "dirname"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "../src/module-loader.js",
+          "specifiers": [
+            "importModuleFromPath"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 80,
+      "hasStructuralAnalysis": true
+    },
+    "CONTEXT.md": {
+      "filePath": "CONTEXT.md",
+      "contentHash": "48b0df16d74c21bb353bad700f7aebaef57b6349f42c53a6503dcf7fc2709a24",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 67,
+      "hasStructuralAnalysis": true
+    },
+    "MANIFEST.md": {
+      "filePath": "MANIFEST.md",
+      "contentHash": "75d3dedd86cd7e242c039bd24ed72257ab1e028249912d4a560e918242189bbd",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "5b4208d4e2598ae6ca2b221173209681e4418502e3e7bcf39413cea32854b526",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "bin/nightly-scan.js": {
+      "filePath": "bin/nightly-scan.js",
+      "contentHash": "5f4216b57af5a83a46c45e596c5134bf18421ce962dfdf763d1d1aff4fed84e7",
+      "functions": [
+        {
+          "name": "findPackageJson",
+          "params": [
+            "dir"
+          ],
+          "exported": false,
+          "lineCount": 20
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fs",
+          "specifiers": [
+            "existsSync",
+            "readdirSync",
+            "statSync"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "join",
+            "resolve"
+          ]
+        },
+        {
+          "source": "child_process",
+          "specifiers": [
+            "spawnSync"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "dirname"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 59,
+      "hasStructuralAnalysis": true
+    },
+    "bin/git-precommit-hook.sh": {
+      "filePath": "bin/git-precommit-hook.sh",
+      "contentHash": "70eb48d2e3f3330e6809b782a9e3dbee53cfa7c7a184ae1b55d1bd8ff11fec61",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 54,
+      "hasStructuralAnalysis": true
+    },
+    "bin/cron-nightly-scan.sh": {
+      "filePath": "bin/cron-nightly-scan.sh",
+      "contentHash": "d75f2fc0ee3b70392599c5c809598a9f739de6b4f96d36076a8f38d9a0b63399",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 51,
+      "hasStructuralAnalysis": true
+    },
+    "guardog.md": {
+      "filePath": "guardog.md",
+      "contentHash": "3cc4e42c8e318bb3f316accadd271634ee8855d4dead6c53da2b04e87c92821d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    ".gitignore": {
+      "filePath": ".gitignore",
+      "contentHash": "c4f9b0879fbc3799ee1530cfd0c9ed257a0962ad27ed9a440b7cceef6c5edbbc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": false
+    },
+    "config/config.json": {
+      "filePath": "config/config.json",
+      "contentHash": "467ee274032a5715e1ae5c58c1d767d58d5c04a71b8958132e553887deca8296",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "src/paths.js": {
+      "filePath": "src/paths.js",
+      "contentHash": "09e1f1784aa0ef3b3f36215eda7778b2d52795a458fdf277ec46eee3122163b6",
+      "functions": [
+        {
+          "name": "packageRoot",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "guardogHome",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "guardogConfigPath",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "guardogEnvPath",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "guardogDataDir",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "ensureGuardogHome",
+          "params": [],
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "fs",
+          "specifiers": [
+            "existsSync",
+            "mkdirSync"
+          ]
+        },
+        {
+          "source": "path",
+          "specifiers": [
+            "dirname",
+            "join",
+            "resolve"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        }
+      ],
+      "exports": [
+        "packageRoot",
+        "guardogHome",
+        "guardogConfigPath",
+        "guardogEnvPath",
+        "guardogDataDir",
+        "ensureGuardogHome"
+      ],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "bin/threat-intel-scan.sh": {
+      "filePath": "bin/threat-intel-scan.sh",
+      "contentHash": "d6a76ef1bb3263286d8377131633e3e6ef9a39963b3e2d110efe7a876b941bb3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 42,
+      "hasStructuralAnalysis": true
+    },
+    ".npmignore": {
+      "filePath": ".npmignore",
+      "contentHash": "88a622e5de2dae0667570f7e8a0957ef7f200261ff407bb727415a3e4550e14d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": false
+    },
+    "config/trusted-providers.json": {
+      "filePath": "config/trusted-providers.json",
+      "contentHash": "d82c6c87407fbe745d15ea1a5966f3ece0162f7e320bde20ed5b58c4317f027a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "INDEX.md": {
+      "filePath": "INDEX.md",
+      "contentHash": "e7a7b0142726832b57c0bd6193c560a7dfc6c66f81fbc58f5885ade6b94ce038",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "ca8344a6e8e6eaed53628be82172ef1724752161e07a695d5b497d7ec019ec3d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "SECURITY.md": {
+      "filePath": "SECURITY.md",
+      "contentHash": "bedd949be79e4a3222434732f5550b3ebc1627df2018521f92c89ffb0055d203",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "reports/.digest-template.md": {
+      "filePath": "reports/.digest-template.md",
+      "contentHash": "bac98ede5e3d2ea248d3916bcd9647d947dc0ddb06ecf7a038b6acae79d47044",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "LICENSE": {
+      "filePath": "LICENSE",
+      "contentHash": "41bec753e6b8625ba02a392b37d748400cc165cd1bf2f4e5245445d9c754ba31",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": false
+    },
+    "bin/npm-postinstall-hook.sh": {
+      "filePath": "bin/npm-postinstall-hook.sh",
+      "contentHash": "17f47249047c8552cb7f5a0e0104e7dc1e788b7b98b17f64014535724b9477b1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "bin/consolidate-logs.sh": {
+      "filePath": "bin/consolidate-logs.sh",
+      "contentHash": "0684c0f285eb0db44bda96cbd743c57c74acc9aa454150598b91f46f08d09d37",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19,
+      "hasStructuralAnalysis": true
+    },
+    ".env.example": {
+      "filePath": ".env.example",
+      "contentHash": "657b7addaa2b7d692a49e65841fc8ab8c45914e303529f5226809da93f05eb5a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": true
+    },
+    "bin/run-cso.sh": {
+      "filePath": "bin/run-cso.sh",
+      "contentHash": "76b8e43b40889a162e65b74920619bd5df60a86f44df5241eb352dad57677d29",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "src/module-loader.js": {
+      "filePath": "src/module-loader.js",
+      "contentHash": "d775fbe058188f1c6ca02329d6d78c488b22e63bb066d3cd30e6b063f2984168",
+      "functions": [
+        {
+          "name": "importModuleFromPath",
+          "params": [
+            "modulePath"
+          ],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "path",
+          "specifiers": [
+            "resolve"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "pathToFileURL"
+          ]
+        }
+      ],
+      "exports": [
+        "importModuleFromPath"
+      ],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

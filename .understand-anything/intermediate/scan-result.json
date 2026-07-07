@@ -1,0 +1,430 @@
+{
+  "projectName": "guard-dog",
+  "projectDescription": "Package-level security scanner for npm and PyPI. Scans packages for CVEs, malicious patterns, reputation signals, and threat intelligence.",
+  "detectedLanguages": [
+    "javascript",
+    "shell",
+    "json",
+    "markdown"
+  ],
+  "detectedFrameworks": [
+    "Node.js 18+",
+    "dotenv",
+    "node-fetch"
+  ],
+  "summary": {
+    "totalFiles": 45,
+    "totalLines": 6480,
+    "javaScriptFiles": 22,
+    "complexityEstimate": "complex",
+    "filteredByIgnoreCount": 25,
+    "languageNotes": "Guard-dog is a Node.js CLI security scanner built with ES6 modules and native APIs. It has zero npm dependencies beyond dotenv and node-fetch. The codebase is organized into modular scanner plugins (CVE, pattern analysis, reputation, threat intelligence, VirusTotal) with a decision tree engine that assigns security verdicts (BARK, WHINE, SILENT). Extensive shell scripting handles installation, cron scheduling, git hooks, and health monitoring.",
+    "languageLesson": "Key architectural pattern: multi-scanner composition with pluggable analyzers coordinated by a central decision tree. Each scanner (CVE, reputation, pattern, threat-intel, VirusTotal) operates independently and returns structured results that feed into the decision tree for deterministic verdict generation. The CLI orchestrator (src/index.js) and core engine (src/core/guard-dog.js) delegate to these scanners rather than doing analysis directly. This makes scanners independently testable and composable."
+  },
+  "files": [
+    {
+      "path": "src/threat-intel.js",
+      "language": "javascript",
+      "lineCount": 620,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/scanners/threat-intel.js",
+      "language": "javascript",
+      "lineCount": 558,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/index.js",
+      "language": "javascript",
+      "lineCount": 500,
+      "fileCategory": "code",
+      "importMap": [
+        "./virustotal-scanner.js",
+        "./reputation-checker.js",
+        "./cve-checker.js",
+        "./pattern-analyzer.js",
+        "./decision-tree.js",
+        "./telegram-alert.js",
+        "./paths.js",
+        "./setup.js"
+      ]
+    },
+    {
+      "path": "src/core/guard-dog.js",
+      "language": "javascript",
+      "lineCount": 409,
+      "fileCategory": "code",
+      "importMap": [
+        "../scanners/virustotal-scanner.js",
+        "../scanners/reputation-checker.js",
+        "../scanners/cve-checker.js",
+        "../scanners/pattern-analyzer.js",
+        "./decision-tree.js",
+        "../alerts/telegram-alert.js",
+        "../scanners/threat-intel.js"
+      ]
+    },
+    {
+      "path": "src/reputation-checker.js",
+      "language": "javascript",
+      "lineCount": 337,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/scanners/reputation-checker.js",
+      "language": "javascript",
+      "lineCount": 337,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/core/decision-tree.js",
+      "language": "javascript",
+      "lineCount": 326,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/decision-tree.js",
+      "language": "javascript",
+      "lineCount": 326,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "bin/tunnel-health-check.js",
+      "language": "javascript",
+      "lineCount": 274,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/setup.js",
+      "language": "javascript",
+      "lineCount": 227,
+      "fileCategory": "code",
+      "importMap": [
+        "./paths.js"
+      ]
+    },
+    {
+      "path": "src/pattern-analyzer.js",
+      "language": "javascript",
+      "lineCount": 212,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/scanners/pattern-analyzer.js",
+      "language": "javascript",
+      "lineCount": 212,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/cve-checker.js",
+      "language": "javascript",
+      "lineCount": 176,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/scanners/cve-checker.js",
+      "language": "javascript",
+      "lineCount": 176,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/scanners/virustotal-scanner.js",
+      "language": "javascript",
+      "lineCount": 148,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/virustotal-scanner.js",
+      "language": "javascript",
+      "lineCount": 148,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "package-lock.json",
+      "language": "json",
+      "lineCount": 129,
+      "fileCategory": "config",
+      "importMap": []
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "lineCount": 116,
+      "fileCategory": "docs",
+      "importMap": []
+    },
+    {
+      "path": "src/alerts/telegram-alert.js",
+      "language": "javascript",
+      "lineCount": 113,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "src/telegram-alert.js",
+      "language": "javascript",
+      "lineCount": 113,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "install.sh",
+      "language": "shell",
+      "lineCount": 86,
+      "fileCategory": "script",
+      "importMap": []
+    },
+    {
+      "path": "bin/scan-deps.js",
+      "language": "javascript",
+      "lineCount": 80,
+      "fileCategory": "code",
+      "importMap": [
+        "../src/module-loader.js"
+      ]
+    },
+    {
+      "path": "CONTEXT.md",
+      "language": "markdown",
+      "lineCount": 67,
+      "fileCategory": "docs",
+      "importMap": []
+    },
+    {
+      "path": "MANIFEST.md",
+      "language": "markdown",
+      "lineCount": 65,
+      "fileCategory": "docs",
+      "importMap": []
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "lineCount": 61,
+      "fileCategory": "config",
+      "importMap": []
+    },
+    {
+      "path": "bin/nightly-scan.js",
+      "language": "javascript",
+      "lineCount": 59,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "bin/git-precommit-hook.sh",
+      "language": "shell",
+      "lineCount": 54,
+      "fileCategory": "script",
+      "importMap": []
+    },
+    {
+      "path": "bin/cron-nightly-scan.sh",
+      "language": "shell",
+      "lineCount": 51,
+      "fileCategory": "script",
+      "importMap": []
+    },
+    {
+      "path": "guardog.md",
+      "language": "markdown",
+      "lineCount": 49,
+      "fileCategory": "docs",
+      "importMap": []
+    },
+    {
+      "path": ".gitignore",
+      "language": "unknown",
+      "lineCount": 46,
+      "fileCategory": "markup",
+      "importMap": []
+    },
+    {
+      "path": "config/config.json",
+      "language": "json",
+      "lineCount": 43,
+      "fileCategory": "config",
+      "importMap": []
+    },
+    {
+      "path": "src/paths.js",
+      "language": "javascript",
+      "lineCount": 43,
+      "fileCategory": "code",
+      "importMap": []
+    },
+    {
+      "path": "bin/threat-intel-scan.sh",
+      "language": "shell",
+      "lineCount": 42,
+      "fileCategory": "script",
+      "importMap": []
+    },
+    {
+      "path": ".npmignore",
+      "language": "unknown",
+      "lineCount": 35,
+      "fileCategory": "markup",
+      "importMap": []
+    },
+    {
+      "path": "config/trusted-providers.json",
+      "language": "json",
+      "lineCount": 34,
+      "fileCategory": "config",
+      "importMap": []
+    },
+    {
+      "path": "INDEX.md",
+      "language": "markdown",
+      "lineCount": 33,
+      "fileCategory": "docs",
+      "importMap": []
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "lineCount": 27,
+      "fileCategory": "docs",
+      "importMap": []
+    },
+    {
+      "path": "SECURITY.md",
+      "language": "markdown",
+      "lineCount": 26,
+      "fileCategory": "docs",
+      "importMap": []
+    },
+    {
+      "path": "reports/.digest-template.md",
+      "language": "markdown",
+      "lineCount": 24,
+      "fileCategory": "docs",
+      "importMap": []
+    },
+    {
+      "path": "LICENSE",
+      "language": "unknown",
+      "lineCount": 22,
+      "fileCategory": "markup",
+      "importMap": []
+    },
+    {
+      "path": "bin/npm-postinstall-hook.sh",
+      "language": "shell",
+      "lineCount": 22,
+      "fileCategory": "script",
+      "importMap": []
+    },
+    {
+      "path": "bin/consolidate-logs.sh",
+      "language": "shell",
+      "lineCount": 19,
+      "fileCategory": "script",
+      "importMap": []
+    },
+    {
+      "path": ".env.example",
+      "language": "text",
+      "lineCount": 15,
+      "fileCategory": "script",
+      "importMap": []
+    },
+    {
+      "path": "bin/run-cso.sh",
+      "language": "shell",
+      "lineCount": 12,
+      "fileCategory": "script",
+      "importMap": []
+    },
+    {
+      "path": "src/module-loader.js",
+      "language": "javascript",
+      "lineCount": 8,
+      "fileCategory": "code",
+      "importMap": []
+    }
+  ],
+  "importMap": {
+    "src/threat-intel.js": [],
+    "src/scanners/threat-intel.js": [],
+    "src/index.js": [
+      "./virustotal-scanner.js",
+      "./reputation-checker.js",
+      "./cve-checker.js",
+      "./pattern-analyzer.js",
+      "./decision-tree.js",
+      "./telegram-alert.js",
+      "./paths.js",
+      "./setup.js"
+    ],
+    "src/core/guard-dog.js": [
+      "../scanners/virustotal-scanner.js",
+      "../scanners/reputation-checker.js",
+      "../scanners/cve-checker.js",
+      "../scanners/pattern-analyzer.js",
+      "./decision-tree.js",
+      "../alerts/telegram-alert.js",
+      "../scanners/threat-intel.js"
+    ],
+    "src/reputation-checker.js": [],
+    "src/scanners/reputation-checker.js": [],
+    "src/core/decision-tree.js": [],
+    "src/decision-tree.js": [],
+    "bin/tunnel-health-check.js": [],
+    "src/setup.js": [
+      "./paths.js"
+    ],
+    "src/pattern-analyzer.js": [],
+    "src/scanners/pattern-analyzer.js": [],
+    "src/cve-checker.js": [],
+    "src/scanners/cve-checker.js": [],
+    "src/scanners/virustotal-scanner.js": [],
+    "src/virustotal-scanner.js": [],
+    "package-lock.json": [],
+    "README.md": [],
+    "src/alerts/telegram-alert.js": [],
+    "src/telegram-alert.js": [],
+    "install.sh": [],
+    "bin/scan-deps.js": [
+      "../src/module-loader.js"
+    ],
+    "CONTEXT.md": [],
+    "MANIFEST.md": [],
+    "package.json": [],
+    "bin/nightly-scan.js": [],
+    "bin/git-precommit-hook.sh": [],
+    "bin/cron-nightly-scan.sh": [],
+    "guardog.md": [],
+    ".gitignore": [],
+    "config/config.json": [],
+    "src/paths.js": [],
+    "bin/threat-intel-scan.sh": [],
+    ".npmignore": [],
+    "config/trusted-providers.json": [],
+    "INDEX.md": [],
+    "CLAUDE.md": [],
+    "SECURITY.md": [],
+    "reports/.digest-template.md": [],
+    "LICENSE": [],
+    "bin/npm-postinstall-hook.sh": [],
+    "bin/consolidate-logs.sh": [],
+    ".env.example": [],
+    "bin/run-cso.sh": [],
+    "src/module-loader.js": []
+  }
+}

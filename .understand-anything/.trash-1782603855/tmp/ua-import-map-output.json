@@ -1,0 +1,79 @@
+{
+  "scriptCompleted": true,
+  "stats": {
+    "filesScanned": 44,
+    "filesWithImports": 5,
+    "totalEdges": 20
+  },
+  "importMap": {
+    ".env.example": [],
+    ".npmignore": [],
+    "bin/consolidate-logs.sh": [],
+    "bin/cron-nightly-scan.sh": [],
+    "bin/git-precommit-hook.sh": [],
+    "bin/nightly-scan.js": [],
+    "bin/npm-postinstall-hook.sh": [],
+    "bin/run-cso.sh": [],
+    "bin/scan-deps.js": [
+      "src/module-loader.js"
+    ],
+    "bin/threat-intel-scan.sh": [],
+    "bin/tunnel-health-check.js": [],
+    "CLAUDE.md": [],
+    "config/config.json": [],
+    "config/trusted-providers.json": [],
+    "CONTEXT.md": [],
+    "examples/batch-example.json": [],
+    "guardog.md": [],
+    "INDEX.md": [],
+    "install.sh": [],
+    "MANIFEST.md": [],
+    "package.json": [],
+    "README.md": [],
+    "reports/.digest-template.md": [],
+    "SECURITY.md": [],
+    "src/alerts/telegram-alert.js": [],
+    "src/core/decision-tree.js": [],
+    "src/core/guard-dog.js": [
+      "src/alerts/telegram-alert.js",
+      "src/core/decision-tree.js",
+      "src/scanners/cve-checker.js",
+      "src/scanners/pattern-analyzer.js",
+      "src/scanners/reputation-checker.js",
+      "src/scanners/threat-intel.js",
+      "src/scanners/virustotal-scanner.js"
+    ],
+    "src/cve-checker.js": [],
+    "src/decision-tree.js": [],
+    "src/index.js": [
+      "src/cve-checker.js",
+      "src/decision-tree.js",
+      "src/paths.js",
+      "src/pattern-analyzer.js",
+      "src/reputation-checker.js",
+      "src/setup.js",
+      "src/telegram-alert.js",
+      "src/virustotal-scanner.js"
+    ],
+    "src/module-loader.js": [],
+    "src/paths.js": [],
+    "src/pattern-analyzer.js": [],
+    "src/reputation-checker.js": [],
+    "src/scanners/cve-checker.js": [],
+    "src/scanners/pattern-analyzer.js": [],
+    "src/scanners/reputation-checker.js": [],
+    "src/scanners/threat-intel.js": [],
+    "src/scanners/virustotal-scanner.js": [],
+    "src/setup.js": [
+      "src/paths.js"
+    ],
+    "src/telegram-alert.js": [],
+    "src/threat-intel.js": [],
+    "src/virustotal-scanner.js": [],
+    "tests/test.js": [
+      "src/cve-checker.js",
+      "src/index.js",
+      "src/pattern-analyzer.js"
+    ]
+  }
+}

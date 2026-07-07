@@ -1,0 +1,23 @@
+{
+  "projectRoot": "/Users/myos/.myos/workspace/agents/guard-dog",
+  "batchFiles": [
+    {"path": "src/cve-checker.js", "language": "javascript", "sizeLines": 175, "fileCategory": "code"},
+    {"path": "src/decision-tree.js", "language": "javascript", "sizeLines": 325, "fileCategory": "code"},
+    {"path": "src/index.js", "language": "javascript", "sizeLines": 499, "fileCategory": "code"},
+    {"path": "src/pattern-analyzer.js", "language": "javascript", "sizeLines": 211, "fileCategory": "code"},
+    {"path": "src/reputation-checker.js", "language": "javascript", "sizeLines": 336, "fileCategory": "code"},
+    {"path": "src/telegram-alert.js", "language": "javascript", "sizeLines": 112, "fileCategory": "code"},
+    {"path": "src/virustotal-scanner.js", "language": "javascript", "sizeLines": 147, "fileCategory": "code"},
+    {"path": "tests/test.js", "language": "javascript", "sizeLines": 411, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "src/cve-checker.js": [],
+    "src/decision-tree.js": [],
+    "src/index.js": ["src/cve-checker.js","src/decision-tree.js","src/paths.js","src/pattern-analyzer.js","src/reputation-checker.js","src/setup.js","src/telegram-alert.js","src/virustotal-scanner.js"],
+    "src/pattern-analyzer.js": [],
+    "src/reputation-checker.js": [],
+    "src/telegram-alert.js": [],
+    "src/virustotal-scanner.js": [],
+    "tests/test.js": ["src/cve-checker.js","src/index.js","src/pattern-analyzer.js"]
+  }
+}

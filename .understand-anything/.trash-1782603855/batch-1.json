@@ -1,0 +1,488 @@
+{
+  "nodes": [
+    {
+      "id": "file:src/alerts/telegram-alert.js",
+      "type": "file",
+      "name": "telegram-alert.js",
+      "filePath": "src/alerts/telegram-alert.js",
+      "summary": "Delivers Telegram bot alerts when guard-dog detects dangerous packages. Formats rich alert messages from decision results and sends them via the Telegram Bot API.",
+      "tags": [
+        "alerts",
+        "telegram",
+        "notifications",
+        "security-alerts",
+        "bot"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/core/decision-tree.js",
+      "type": "file",
+      "name": "decision-tree.js",
+      "filePath": "src/core/decision-tree.js",
+      "summary": "Evaluates scanner results through a scored decision tree to classify package risk as BARK, WHINE, or SILENT. Aggregates threat scores from VirusTotal, reputation, CVE, and pattern signals.",
+      "tags": [
+        "decision-tree",
+        "risk-scoring",
+        "threat-classification",
+        "core",
+        "scoring"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/core/guard-dog.js",
+      "type": "file",
+      "name": "guard-dog.js",
+      "filePath": "src/core/guard-dog.js",
+      "summary": "Main orchestrator class that coordinates all scanners and produces a unified security verdict for a given package. Manages scan history, triggers Telegram alerts, and supports batch analysis.",
+      "tags": [
+        "orchestrator",
+        "core",
+        "package-scanning",
+        "security",
+        "batch-analysis"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/scanners/cve-checker.js",
+      "type": "file",
+      "name": "cve-checker.js",
+      "filePath": "src/scanners/cve-checker.js",
+      "summary": "Queries the OSV (Open Source Vulnerabilities) database for known CVEs affecting a package. Parses severity levels and calculates a threat score from the vulnerability counts.",
+      "tags": [
+        "cve",
+        "osv",
+        "vulnerability-scanning",
+        "security",
+        "severity"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/scanners/pattern-analyzer.js",
+      "type": "file",
+      "name": "pattern-analyzer.js",
+      "filePath": "src/scanners/pattern-analyzer.js",
+      "summary": "Detects suspicious code patterns in package files using regex matching. Scores packages based on matched patterns associated with malicious behavior.",
+      "tags": [
+        "pattern-matching",
+        "static-analysis",
+        "malicious-code",
+        "regex",
+        "scoring"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/scanners/reputation-checker.js",
+      "type": "file",
+      "name": "reputation-checker.js",
+      "filePath": "src/scanners/reputation-checker.js",
+      "summary": "Checks package reputation across npm, PyPI, and RubyGems registries as well as GitHub. Aggregates download counts, stars, maintenance signals, and repository metadata into a reputation signal set.",
+      "tags": [
+        "reputation",
+        "npm",
+        "pypi",
+        "github",
+        "registry"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/scanners/threat-intel.js",
+      "type": "file",
+      "name": "threat-intel.js",
+      "filePath": "src/scanners/threat-intel.js",
+      "summary": "Aggregates threat intelligence from OSV, GitHub Security Advisories, NVD, and the CISA KEV catalog with disk-based caching. Provides per-package advisory lookup and cross-referencing against installed package lists.",
+      "tags": [
+        "threat-intelligence",
+        "advisories",
+        "nvd",
+        "github-advisories",
+        "caching"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:src/scanners/virustotal-scanner.js",
+      "type": "file",
+      "name": "virustotal-scanner.js",
+      "filePath": "src/scanners/virustotal-scanner.js",
+      "summary": "Scans package URLs and file hashes against the VirusTotal v3 API for malware detection results. Returns parsed detection scores aggregated from multiple AV engine verdicts.",
+      "tags": [
+        "virustotal",
+        "malware-detection",
+        "api-scanner",
+        "url-scanning",
+        "file-reputation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/alerts/telegram-alert.js:TelegramAlert",
+      "type": "class",
+      "name": "TelegramAlert",
+      "filePath": "src/alerts/telegram-alert.js",
+      "lineRange": [
+        11,
+        112
+      ],
+      "summary": "Sends formatted Telegram bot messages when a dangerous package is detected. Handles message construction from decision results, alert dispatch, and connection testing.",
+      "tags": [
+        "telegram",
+        "alert",
+        "notification",
+        "bot-api",
+        "security"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/core/decision-tree.js:DecisionTree",
+      "type": "class",
+      "name": "DecisionTree",
+      "filePath": "src/core/decision-tree.js",
+      "lineRange": [
+        6,
+        325
+      ],
+      "summary": "Aggregates and weights scanner results into a final risk score and BARK/WHINE/SILENT verdict. Checks trusted provider allowlists and evaluates VirusTotal, reputation, CVE, and pattern subscores.",
+      "tags": [
+        "decision-tree",
+        "risk-scoring",
+        "threat-classification",
+        "multi-signal",
+        "scoring"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/core/guard-dog.js:GuardDog",
+      "type": "class",
+      "name": "GuardDog",
+      "filePath": "src/core/guard-dog.js",
+      "lineRange": [
+        23,
+        369
+      ],
+      "summary": "Top-level coordinator that instantiates all scanners, runs them in sequence for a package, feeds results to the decision tree, persists scan history, and triggers Telegram alerts on BARK verdicts. Supports single and batch analysis modes.",
+      "tags": [
+        "orchestrator",
+        "coordinator",
+        "scan-pipeline",
+        "history",
+        "security"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/scanners/cve-checker.js:CVEChecker",
+      "type": "class",
+      "name": "CVEChecker",
+      "filePath": "src/scanners/cve-checker.js",
+      "lineRange": [
+        8,
+        175
+      ],
+      "summary": "Fetches CVE data from the OSV API for a named package and ecosystem. Parses severity from database metadata or CVSS scores and computes a weighted threat score.",
+      "tags": [
+        "cve-checker",
+        "osv",
+        "vulnerability",
+        "severity-parsing",
+        "threat-score"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/scanners/pattern-analyzer.js:PatternAnalyzer",
+      "type": "class",
+      "name": "PatternAnalyzer",
+      "filePath": "src/scanners/pattern-analyzer.js",
+      "lineRange": [
+        6,
+        211
+      ],
+      "summary": "Applies regex-based suspicious pattern rules across package source files. Calculates a weighted score based on pattern category severity and match density.",
+      "tags": [
+        "pattern-analyzer",
+        "static-analysis",
+        "regex",
+        "malicious-patterns",
+        "scoring"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:src/scanners/reputation-checker.js:ReputationChecker",
+      "type": "class",
+      "name": "ReputationChecker",
+      "filePath": "src/scanners/reputation-checker.js",
+      "lineRange": [
+        8,
+        336
+      ],
+      "summary": "Multi-registry reputation aggregator querying npm, PyPI, RubyGems, and GitHub for package and repository metadata. Produces a list of positive and negative reputation signals consumed by the decision tree.",
+      "tags": [
+        "reputation",
+        "multi-registry",
+        "github",
+        "signals",
+        "npm-pypi"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/scanners/threat-intel.js:ThreatIntel",
+      "type": "class",
+      "name": "ThreatIntel",
+      "filePath": "src/scanners/threat-intel.js",
+      "lineRange": [
+        18,
+        557
+      ],
+      "summary": "Multi-source threat intelligence collector with disk-based caching. Queries OSV, GitHub Security Advisories, NVD, and the CISA KEV catalog, deduplicates findings by ID, and exposes efficient per-package advisory lookup.",
+      "tags": [
+        "threat-intel",
+        "multi-source",
+        "caching",
+        "advisory-db",
+        "cisa-kev"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:src/scanners/virustotal-scanner.js:VirusTotalScanner",
+      "type": "class",
+      "name": "VirusTotalScanner",
+      "filePath": "src/scanners/virustotal-scanner.js",
+      "lineRange": [
+        8,
+        147
+      ],
+      "summary": "Wraps the VirusTotal v3 REST API to scan URLs and retrieve file hash reports. Parses AV engine detection statistics into a normalized result structure for the decision tree.",
+      "tags": [
+        "virustotal",
+        "api-client",
+        "url-scan",
+        "file-hash",
+        "malware"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "type": "contains",
+      "weight": 1.0,
+      "source": "file:src/alerts/telegram-alert.js",
+      "target": "class:src/alerts/telegram-alert.js:TelegramAlert",
+      "direction": "directed"
+    },
+    {
+      "type": "contains",
+      "weight": 1.0,
+      "source": "file:src/core/decision-tree.js",
+      "target": "class:src/core/decision-tree.js:DecisionTree",
+      "direction": "directed"
+    },
+    {
+      "type": "contains",
+      "weight": 1.0,
+      "source": "file:src/core/guard-dog.js",
+      "target": "class:src/core/guard-dog.js:GuardDog",
+      "direction": "directed"
+    },
+    {
+      "type": "contains",
+      "weight": 1.0,
+      "source": "file:src/scanners/cve-checker.js",
+      "target": "class:src/scanners/cve-checker.js:CVEChecker",
+      "direction": "directed"
+    },
+    {
+      "type": "contains",
+      "weight": 1.0,
+      "source": "file:src/scanners/pattern-analyzer.js",
+      "target": "class:src/scanners/pattern-analyzer.js:PatternAnalyzer",
+      "direction": "directed"
+    },
+    {
+      "type": "contains",
+      "weight": 1.0,
+      "source": "file:src/scanners/reputation-checker.js",
+      "target": "class:src/scanners/reputation-checker.js:ReputationChecker",
+      "direction": "directed"
+    },
+    {
+      "type": "contains",
+      "weight": 1.0,
+      "source": "file:src/scanners/threat-intel.js",
+      "target": "class:src/scanners/threat-intel.js:ThreatIntel",
+      "direction": "directed"
+    },
+    {
+      "type": "contains",
+      "weight": 1.0,
+      "source": "file:src/scanners/virustotal-scanner.js",
+      "target": "class:src/scanners/virustotal-scanner.js:VirusTotalScanner",
+      "direction": "directed"
+    },
+    {
+      "type": "exports",
+      "weight": 0.8,
+      "source": "file:src/alerts/telegram-alert.js",
+      "target": "class:src/alerts/telegram-alert.js:TelegramAlert",
+      "direction": "directed"
+    },
+    {
+      "type": "exports",
+      "weight": 0.8,
+      "source": "file:src/core/decision-tree.js",
+      "target": "class:src/core/decision-tree.js:DecisionTree",
+      "direction": "directed"
+    },
+    {
+      "type": "exports",
+      "weight": 0.8,
+      "source": "file:src/core/guard-dog.js",
+      "target": "class:src/core/guard-dog.js:GuardDog",
+      "direction": "directed"
+    },
+    {
+      "type": "exports",
+      "weight": 0.8,
+      "source": "file:src/scanners/cve-checker.js",
+      "target": "class:src/scanners/cve-checker.js:CVEChecker",
+      "direction": "directed"
+    },
+    {
+      "type": "exports",
+      "weight": 0.8,
+      "source": "file:src/scanners/pattern-analyzer.js",
+      "target": "class:src/scanners/pattern-analyzer.js:PatternAnalyzer",
+      "direction": "directed"
+    },
+    {
+      "type": "exports",
+      "weight": 0.8,
+      "source": "file:src/scanners/reputation-checker.js",
+      "target": "class:src/scanners/reputation-checker.js:ReputationChecker",
+      "direction": "directed"
+    },
+    {
+      "type": "exports",
+      "weight": 0.8,
+      "source": "file:src/scanners/threat-intel.js",
+      "target": "class:src/scanners/threat-intel.js:ThreatIntel",
+      "direction": "directed"
+    },
+    {
+      "type": "exports",
+      "weight": 0.8,
+      "source": "file:src/scanners/virustotal-scanner.js",
+      "target": "class:src/scanners/virustotal-scanner.js:VirusTotalScanner",
+      "direction": "directed"
+    },
+    {
+      "type": "imports",
+      "weight": 0.7,
+      "source": "file:src/core/guard-dog.js",
+      "target": "file:src/alerts/telegram-alert.js",
+      "direction": "directed"
+    },
+    {
+      "type": "imports",
+      "weight": 0.7,
+      "source": "file:src/core/guard-dog.js",
+      "target": "file:src/core/decision-tree.js",
+      "direction": "directed"
+    },
+    {
+      "type": "imports",
+      "weight": 0.7,
+      "source": "file:src/core/guard-dog.js",
+      "target": "file:src/scanners/cve-checker.js",
+      "direction": "directed"
+    },
+    {
+      "type": "imports",
+      "weight": 0.7,
+      "source": "file:src/core/guard-dog.js",
+      "target": "file:src/scanners/pattern-analyzer.js",
+      "direction": "directed"
+    },
+    {
+      "type": "imports",
+      "weight": 0.7,
+      "source": "file:src/core/guard-dog.js",
+      "target": "file:src/scanners/reputation-checker.js",
+      "direction": "directed"
+    },
+    {
+      "type": "imports",
+      "weight": 0.7,
+      "source": "file:src/core/guard-dog.js",
+      "target": "file:src/scanners/threat-intel.js",
+      "direction": "directed"
+    },
+    {
+      "type": "imports",
+      "weight": 0.7,
+      "source": "file:src/core/guard-dog.js",
+      "target": "file:src/scanners/virustotal-scanner.js",
+      "direction": "directed"
+    },
+    {
+      "type": "calls",
+      "weight": 0.8,
+      "source": "class:src/core/guard-dog.js:GuardDog",
+      "target": "class:src/scanners/reputation-checker.js:ReputationChecker",
+      "direction": "directed"
+    },
+    {
+      "type": "calls",
+      "weight": 0.8,
+      "source": "class:src/core/guard-dog.js:GuardDog",
+      "target": "class:src/scanners/virustotal-scanner.js:VirusTotalScanner",
+      "direction": "directed"
+    },
+    {
+      "type": "calls",
+      "weight": 0.8,
+      "source": "class:src/core/guard-dog.js:GuardDog",
+      "target": "class:src/scanners/cve-checker.js:CVEChecker",
+      "direction": "directed"
+    },
+    {
+      "type": "calls",
+      "weight": 0.8,
+      "source": "class:src/core/guard-dog.js:GuardDog",
+      "target": "class:src/scanners/pattern-analyzer.js:PatternAnalyzer",
+      "direction": "directed"
+    },
+    {
+      "type": "calls",
+      "weight": 0.8,
+      "source": "class:src/core/guard-dog.js:GuardDog",
+      "target": "class:src/scanners/threat-intel.js:ThreatIntel",
+      "direction": "directed"
+    },
+    {
+      "type": "calls",
+      "weight": 0.8,
+      "source": "class:src/core/guard-dog.js:GuardDog",
+      "target": "class:src/core/decision-tree.js:DecisionTree",
+      "direction": "directed"
+    },
+    {
+      "type": "calls",
+      "weight": 0.8,
+      "source": "class:src/core/guard-dog.js:GuardDog",
+      "target": "class:src/alerts/telegram-alert.js:TelegramAlert",
+      "direction": "directed"
+    }
+  ]
+}

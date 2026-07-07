@@ -1,0 +1,594 @@
+{
+  "nodes": [
+    {
+      "id": "file_package.json",
+      "type": "config",
+      "path": "package.json",
+      "language": "json",
+      "category": "config",
+      "sizeLines": 56,
+      "title": "Guard-Dog Package Manifest",
+      "summary": "NPM package configuration for guard-dog security scanner. Defines project metadata, executable entry points (guard-dog, guardog, guard-dog-scan), scripts for start/test/scan/setup/cron, and dependencies (dotenv, node-fetch). Requires Node.js 18+.",
+      "tags": [
+        "npm-package",
+        "executable",
+        "configuration",
+        "dependencies",
+        "cli-tool"
+      ],
+      "metadata": {
+        "packageName": "guard-dog",
+        "version": "1.0.0",
+        "main": "src/index.js",
+        "moduleType": "esm",
+        "nodeVersion": ">=18",
+        "author": "josephtandle",
+        "license": "MIT",
+        "repository": "https://github.com/josephtandle/guardog",
+        "publishConfig": "public"
+      },
+      "languageNotes": "ESM module system. Defines bin entries for CLI commands: guard-dog (main CLI), guardog (alias), guard-dog-scan (dependency scanner). Scripts entry point includes test, scan, setup, and nightly cron job tasks."
+    },
+    {
+      "id": "file_CLAUDE.md",
+      "type": "document",
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "category": "docs",
+      "sizeLines": 55,
+      "title": "Guard-Dog Documentation",
+      "summary": "Internal documentation for guard-dog. Describes package-level security scanning for npm/pip packages, decision levels (BARK >= 100, WHINE 50-99, SILENT < 50), companion code-level review tool /gstack-cso, entry points for analyze and batch operations, and nightly scan cron schedule.",
+      "tags": [
+        "documentation",
+        "security-scanning",
+        "decision-levels",
+        "cve-analysis",
+        "malware-detection"
+      ],
+      "metadata": {
+        "decisionLevels": {
+          "BARK": ">=100 (Danger, Telegram alert)",
+          "WHINE": "50-99 (Suspicious, warn user)",
+          "SILENT": "<50 (Safe, pass through)"
+        },
+        "companionTool": "/gstack-cso (code-level review via OWASP Top 10 + STRIDE)",
+        "cronSchedule": "02:30 GMT+8"
+      },
+      "languageNotes": "Entry points documented: 'node src/index.js analyze <package> [ecosystem] [url]' for single package, 'node src/index.js batch <packages.json>' for batch operations. Nightly cron runs via bin/cron-nightly-scan.sh."
+    },
+    {
+      "id": "file_README.md",
+      "type": "document",
+      "path": "README.md",
+      "language": "markdown",
+      "category": "docs",
+      "sizeLines": 78,
+      "title": "Guardog Public Documentation",
+      "summary": "User-facing README for guardog npm package. Covers installation via npm/GitHub, setup wizard (questions about nightly scans, pre-install hooks, git pre-commit, VirusTotal key), usage examples (analyze single packages, batch scans, doctor), nightly scan configuration, install hooks, VirusTotal integration, verdict definitions (SILENT/WHINE/BARK), and cross-platform support notes.",
+      "tags": [
+        "user-guide",
+        "installation",
+        "usage",
+        "cli-reference",
+        "cross-platform"
+      ],
+      "metadata": {
+        "nodeVersion": ">=18",
+        "installMethods": ["npm", "github-clone"],
+        "setupOptions": [
+          "nightly-scans",
+          "pre-install-hooks",
+          "git-pre-commit",
+          "virustotal-api-key"
+        ],
+        "verdicts": {
+          "SILENT": "score < 50, safe to install",
+          "WHINE": "score 50-99, suspicious",
+          "BARK": "score >= 100, dangerous"
+        },
+        "scanTypes": [
+          "CVE-databases (OSV, GitHub Advisories, NVD, CISA KEV)",
+          "package-reputation",
+          "code-pattern-analysis",
+          "virustotal-scanning",
+          "threat-intelligence-cache"
+        ]
+      },
+      "languageNotes": "Emphasizes local-only operation: no OpenAI, no YOLO, no MyOS Dispatch, no Typeless. Uses public APIs (npm, PyPI, OSV, GitHub, NVD, VirusTotal). State folder: ~/.guardog (macOS/Linux) or %USERPROFILE%\\.guardog (Windows)."
+    },
+    {
+      "id": "file_CONTEXT.md",
+      "type": "document",
+      "path": "CONTEXT.md",
+      "language": "markdown",
+      "category": "docs",
+      "sizeLines": 23,
+      "title": "Guardog Project Context",
+      "summary": "Project overview for guard-dog/guardog. Public npm/PyPI package security scanner derived from internal guard-dog agent. Includes Claude Code /guardog skill, install.sh, git pre-commit hook, npm postinstall hook. No build step, Node.js ESM CLI only. Environment variables: VIRUSTOTAL_API_KEY (optional), TELEGRAM_BOT_TOKEN+CHAT_ID (optional), GITHUB_API_TOKEN (optional). State folder: ~/guardog/ for installations.",
+      "tags": [
+        "project-context",
+        "public-release",
+        "security-tool",
+        "npm-package",
+        "environment-configuration"
+      ],
+      "metadata": {
+        "lastUpdated": "2026-04-15",
+        "agentSource": "~/.myos/workspace/agents/guard-dog/",
+        "studentInstallPath": "~/guardog/",
+        "gitRepo": true,
+        "gitRepoInitialized": "2026-04-15",
+        "github": "https://github.com/josephtandle/guardog",
+        "techStack": ["Node.js", "ESM", "dotenv", "node-fetch"],
+        "environmentVariables": {
+          "VIRUSTOTAL_API_KEY": "optional, 70+ AV engines, free tier: 4 req/min, 500/day",
+          "TELEGRAM_BOT_TOKEN": "optional, sends BARK alerts",
+          "TELEGRAM_CHAT_ID": "optional, sends BARK alerts",
+          "GITHUB_API_TOKEN": "optional, increases GitHub API limits"
+        },
+        "verdicts": {
+          "SILENT": "score < 50, safe",
+          "WHINE": "score 50-99, suspicious",
+          "BARK": "score >= 100, dangerous, Telegram alert"
+        }
+      },
+      "languageNotes": "Entry commands: 'node ~/guardog/src/index.js analyze <package> [npm|pypi]', 'node ~/guardog/src/index.js batch <packages.json>', 'node ~/guardog/src/index.js test'. Claude Code skill: /guardog <package> [npm|pypi]. References companion gstack-cso skill for code-level review (OWASP Top 10 + STRIDE)."
+    },
+    {
+      "id": "file_MANIFEST.md",
+      "type": "document",
+      "path": "MANIFEST.md",
+      "language": "markdown",
+      "category": "docs",
+      "sizeLines": 100,
+      "title": "Guard-Dog Operations Manifest",
+      "summary": "Operational manifest describing guard-dog security operations structure. Defines log/data/report/archive directory layout, retention policies (scans 90d, alerts 365d, install-history 365d, dependency-changes 365d, reports 730d, critical-incidents 1825d), key files (.logindex.json, logs schema, vulnerability schema), daily operations workflow, and jq query examples for vulnerability lookups.",
+      "tags": [
+        "operations",
+        "logging",
+        "data-retention",
+        "directory-structure",
+        "query-examples"
+      ],
+      "metadata": {
+        "directories": {
+          "logs": "real-time scans, alerts, install-history, dependency-tracking",
+          "data": "vulnerabilities master database, remediation tracking, baselines",
+          "reports": "daily, weekly, monthly digests, critical-alerts",
+          "archive": "historical records (compressed) organized by YYYY/MM"
+        },
+        "retentionPolicy": {
+          "scans": "90 days, NDJSON",
+          "alerts": "365 days, NDJSON",
+          "install_history": "365 days, NDJSON",
+          "dependency_changes": "365 days, NDJSON",
+          "reports": "730 days, Markdown",
+          "critical_incidents": "1825 days, NDJSON"
+        },
+        "dailyOperations": [
+          "Nightly scans (cron, PATH-fixed)",
+          "Logs to appropriate subdirectories",
+          "Daily digest at 06:30",
+          "Critical alerts sent immediately",
+          "Monthly consolidation on 1st"
+        ]
+      },
+      "languageNotes": "Log format schema files: .logindex.json (format and retention), logs/install-history/schema.json (audit structure), data/vulnerabilities/schema.json (vulnerability tracking). Includes jq query examples for common operations: find vulnerabilities by package, get critical issues from last 7 days, list monthly installations."
+    },
+    {
+      "id": "file_.env.example",
+      "type": "config",
+      "path": ".env.example",
+      "language": "markdown",
+      "category": "config",
+      "sizeLines": 67,
+      "title": "Environment Configuration Template",
+      "summary": "Template for environment variables. Defines optional and recommended API keys: VIRUSTOTAL_API_KEY (highly recommended, free tier sufficient), TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID (optional, sends BARK alerts), GITHUB_API_TOKEN (optional, increases GitHub rate limits). Includes signup links and usage notes.",
+      "tags": [
+        "environment",
+        "configuration",
+        "api-keys",
+        "secrets",
+        "optional-configuration"
+      ],
+      "metadata": {
+        "variables": {
+          "VIRUSTOTAL_API_KEY": {
+            "required": false,
+            "recommended": true,
+            "description": "70+ AV engine scanning",
+            "freeTierLimits": "4 req/min, 500/day",
+            "signupUrl": "https://www.virustotal.com/gui/join-us"
+          },
+          "TELEGRAM_BOT_TOKEN": {
+            "required": false,
+            "description": "sends message when BARK package detected",
+            "source": "@BotFather on Telegram"
+          },
+          "TELEGRAM_CHAT_ID": {
+            "required": false,
+            "description": "destination for BARK alerts"
+          },
+          "GITHUB_API_TOKEN": {
+            "required": false,
+            "description": "increases rate limits for reputation checks"
+          }
+        }
+      },
+      "languageNotes": "Template file for copying to .env. Only VIRUSTOTAL_API_KEY is needed for basic functionality. Telegram integration requires both TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID for BARK alert notifications."
+    },
+    {
+      "id": "file_.gitignore",
+      "type": "config",
+      "path": ".gitignore",
+      "language": "markdown",
+      "category": "config",
+      "sizeLines": 25,
+      "title": "Git Ignore Rules",
+      "summary": "Git ignore patterns for guard-dog repository. Excludes: node_modules and package-lock.json (dependencies), .env files (secrets), logs, npm-debug.log, OS files (.DS_Store, Thumbs.db), IDE configs (.vscode, .idea), test coverage, build outputs (dist, build), guardog runtime data (data, logs, archive), and internal documentation (IMPLEMENTATION.md, OPERATIONS.md, etc.).",
+      "tags": [
+        "git-configuration",
+        "ignore-rules",
+        "secrets",
+        "runtime-data",
+        "build-artifacts"
+      ],
+      "metadata": {
+        "ignoreCategories": {
+          "dependencies": ["node_modules/", "package-lock.json"],
+          "secrets": [".env", ".env.local"],
+          "logs": ["*.log", "npm-debug.log*"],
+          "os": [".DS_Store", "Thumbs.db"],
+          "ide": [".vscode/", ".idea/", "*.swp", "*.swo"],
+          "tests": ["coverage/", ".nyc_output/"],
+          "builds": ["dist/", "build/"],
+          "runtimeData": ["data/", "logs/", "archive/"],
+          "internalDocs": [
+            "IMPLEMENTATION.md",
+            "PROJECT_COMPLETE.md",
+            "OPERATIONS.md",
+            "GUARD_DOG_PROMPT.md",
+            "QUICKSTART.md"
+          ],
+          "internalScripts": [
+            "bin/setup-logging-structure.sh",
+            "bin/mission-control-trigger.js",
+            "bin/sync-vulns-to-db.js",
+            "bin/threat-intel-daily.js"
+          ]
+        }
+      },
+      "languageNotes": "Guardog runtime data directories (data/, logs/, archive/) are version-control excluded. Internal workspace automation scripts and documentation are not shipped in distribution."
+    },
+    {
+      "id": "file_.npmignore",
+      "type": "config",
+      "path": ".npmignore",
+      "language": "markdown",
+      "category": "config",
+      "sizeLines": 9,
+      "title": "NPM Publish Ignore Rules",
+      "summary": "NPM publish ignore patterns. Excludes runtime state (.env files, data/, logs/, archive/, reports/), development files (node_modules, debug logs, OS/IDE files), test coverage, internal workspace automation (bin/ scripts for mission-control, logging setup, vulnerability sync, threat-intel), and internal documentation (CLAUDE.md, CONTEXT.md, project/implementation docs).",
+      "tags": [
+        "npm-publish",
+        "distribution",
+        "ignore-rules",
+        "package-distribution"
+      ],
+      "metadata": {
+        "excludedFromDistribution": {
+          "runtimeState": [".env", ".env.*", "data/", "logs/", "archive/", "reports/**"],
+          "development": [
+            "node_modules/",
+            "npm-debug.log*",
+            ".DS_Store",
+            ".vscode/",
+            ".idea/",
+            "*.swp",
+            "*.swo"
+          ],
+          "testing": ["coverage/", ".nyc_output/"],
+          "internalAutomation": [
+            "bin/mission-control-trigger.js",
+            "bin/setup-logging-structure.sh",
+            "bin/sync-vulns-to-db.js",
+            "bin/threat-intel-daily.js",
+            "bin/threat-intel-scan.sh",
+            "bin/tunnel-health-check.js"
+          ],
+          "internalDocumentation": [
+            "CLAUDE.md",
+            "CONTEXT.md",
+            "GUARD_DOG_PROMPT.md",
+            "IMPLEMENTATION.md",
+            "OPERATIONS.md",
+            "PROJECT_COMPLETE.md",
+            "QUICKSTART.md"
+          ],
+          "reportsTemplate": "reports/** (except reports/.digest-template.md)"
+        }
+      },
+      "languageNotes": "Stricter than .gitignore to ensure public npm distribution contains only distributable code and configuration. Excludes workspace-specific automation, internal documentation, and runtime state."
+    },
+    {
+      "id": "file_INDEX.md",
+      "type": "document",
+      "path": "INDEX.md",
+      "language": "markdown",
+      "category": "docs",
+      "sizeLines": 12,
+      "title": "Guard-Dog File Index",
+      "summary": "Auto-generated directory index listing all files and directories. Documents config files (.env.example, .gitignore, CLAUDE.md, CONTEXT.md), documentation (README.md, MANIFEST.md, project docs), JSON data (package.json, package-lock.json), and directories (src/, bin/, config/, data/, logs/, tests/). Last generated 2026-04-03.",
+      "tags": [
+        "index",
+        "directory-listing",
+        "auto-generated"
+      ],
+      "metadata": {
+        "generatedBy": "organizer",
+        "generatedDate": "2026-04-03"
+      },
+      "languageNotes": "Auto-generated file index. Lists project structure for quick navigation."
+    },
+    {
+      "id": "file_SECURITY.md",
+      "type": "document",
+      "path": "SECURITY.md",
+      "language": "markdown",
+      "category": "docs",
+      "sizeLines": 24,
+      "title": "Security Policy",
+      "summary": "Security policy for guardog project. Covers vulnerability reporting procedures, supported versions (pre-1.1 public release, fixes on default branch first), and secret handling guidelines (do not include API keys, .env files, scan cache, or logs in reports).",
+      "tags": [
+        "security-policy",
+        "vulnerability-disclosure",
+        "responsible-disclosure"
+      ],
+      "metadata": {
+        "reportingChannel": "GitHub Security Advisories",
+        "reportingUrl": "https://github.com/josephtandle/guardog/security/advisories/new",
+        "supportedVersions": "pre-1.1 public release",
+        "fixPriority": "default branch first, then released from latest tagged version",
+        "secretHandling": "Do not include API keys, tokens, .env, scan cache, or runtime logs"
+      },
+      "languageNotes": "Emphasizes private disclosure for vulnerabilities. Requests affected package name, version, reproduction steps, and relevant logs/scan output. Fallback: minimal public issue requesting private security contact without exploit details."
+    },
+    {
+      "id": "file_guardog.md",
+      "type": "document",
+      "path": "guardog.md",
+      "language": "markdown",
+      "category": "docs",
+      "sizeLines": 50,
+      "title": "Guardog Claude Code Skill",
+      "summary": "Claude Code skill definition for guardog. Provides /guardog command to scan npm or PyPI packages for security threats. Performs multi-layer checks: CVE lookup (Google OSV), package reputation (npm/PyPI/GitHub), malicious code patterns (30+), optional VirusTotal (70+ AV engines). Returns verdicts: SILENT (safe), WHINE (suspicious), BARK (dangerous). Suggests companion /gstack-cso for code-level OWASP/STRIDE review on BARK/WHINE results.",
+      "tags": [
+        "claude-code-skill",
+        "cli-integration",
+        "security-scanning",
+        "skill-definition"
+      ],
+      "metadata": {
+        "skillName": "guardog",
+        "commandSyntax": "/guardog <package> [npm|pypi]",
+        "checksPerformed": [
+          "CVE-lookup (Google OSV database)",
+          "Package-reputation (npm/PyPI/GitHub metadata)",
+          "Malicious-code-patterns (30+ patterns)",
+          "VirusTotal-scan (70+ AV engines, if API key configured)"
+        ],
+        "verdicts": {
+          "SILENT": "safe to install",
+          "WHINE": "suspicious, review before installing",
+          "BARK": "dangerous, do not install"
+        },
+        "companionSkill": "/gstack-cso (code-level OWASP Top 10 + STRIDE review)",
+        "commandExamples": [
+          "/guardog lodash",
+          "/guardog requests pypi",
+          "/guardog some-random-package npm"
+        ]
+      },
+      "languageNotes": "Skill file uses fallback path discovery: tries ~/guardog/ first, then searches for index.js via 'find ~ -name index.js -path '*/guardog/src/*''. Recommends running /gstack-cso on affected code for BARK or WHINE verdicts."
+    },
+    {
+      "id": "file_install.sh",
+      "type": "script",
+      "path": "install.sh",
+      "language": "shell",
+      "category": "script",
+      "sizeLines": 45,
+      "title": "Legacy Guardog Installer",
+      "summary": "Bash installation script for guardog. Notes recommended cross-platform path (npm install -g github:josephtandle/guardog). Installs dependencies, creates data directory, installs Claude Code skill, optionally installs git pre-commit hook, prompts for VirusTotal API key, runs Node.js setup wizard. Provides installation feedback and usage examples.",
+      "tags": [
+        "installation",
+        "setup",
+        "shell-script",
+        "legacy",
+        "interactive"
+      ],
+      "metadata": {
+        "installationSteps": [
+          "Install npm dependencies",
+          "Create data directory",
+          "Install Claude Code skill",
+          "Optional: install git pre-commit hook",
+          "Prompt for VirusTotal API key",
+          "Run Node.js setup wizard"
+        ],
+        "skillsDirectory": "$HOME/.claude/skills",
+        "hooksDirectory": "$GUARD_DOG_DIR/bin/hooks",
+        "configPath": "$GUARD_DOG_DIR/.env",
+        "setupWizardCommand": "node $GUARD_DOG_DIR/src/index.js setup"
+      },
+      "languageNotes": "Legacy installer; README recommends npm-based installation. Asks user permission for optional features (git hook, VirusTotal key). Saves VirusTotal key to .env in install directory. Creates .claude/skills directory symlink for Claude Code skill integration."
+    },
+    {
+      "id": "file_LICENSE",
+      "type": "document",
+      "path": "LICENSE",
+      "language": "markdown",
+      "category": "docs",
+      "sizeLines": 21,
+      "title": "MIT License",
+      "summary": "MIT License for guardog project. Copyright (c) 2026 josephtandle. Standard MIT license text granting rights to copy, modify, distribute, and sublicense with included notice and liability disclaimer.",
+      "tags": [
+        "license",
+        "mit",
+        "copyright"
+      ],
+      "metadata": {
+        "licenseType": "MIT",
+        "copyrightYear": 2026,
+        "copyrightOwner": "josephtandle"
+      },
+      "languageNotes": "Standard MIT license text."
+    },
+    {
+      "id": "file_package-lock.json",
+      "type": "config",
+      "path": "package-lock.json",
+      "language": "json",
+      "category": "config",
+      "sizeLines": 1524,
+      "title": "NPM Dependency Lock File",
+      "summary": "NPM lockfile version 3 specifying exact dependency versions. Project dependencies: dotenv@16.6.1 (environment variable loading), node-fetch@3.3.2 (HTTP requests). Transitive dependencies include fetch-blob, data-uri-to-buffer, file-from-path. Node.js requirement >= 18.",
+      "tags": [
+        "dependencies",
+        "lockfile",
+        "npm",
+        "version-control"
+      ],
+      "metadata": {
+        "lockfileVersion": 3,
+        "projectName": "guard-dog",
+        "projectVersion": "1.0.0",
+        "nodeVersion": ">=18",
+        "directDependencies": {
+          "dotenv": "^16.4.5 (resolved 16.6.1)",
+          "node-fetch": "^3.3.2"
+        },
+        "transitiveDependendencies": [
+          "data-uri-to-buffer@4.0.1",
+          "fetch-blob@3.2.0",
+          "file-from-path"
+        ]
+      },
+      "languageNotes": "Lockfile ensures reproducible builds. Direct dependencies are minimal: dotenv for .env file parsing, node-fetch for HTTP/HTTPS requests to security APIs. No heavy framework dependencies."
+    }
+  ],
+  "edges": [
+    {
+      "source": "file_package.json",
+      "target": "file_install.sh",
+      "type": "dependency",
+      "label": "defines npm install target",
+      "strength": "strong"
+    },
+    {
+      "source": "file_package.json",
+      "target": "file_package-lock.json",
+      "type": "lockfile",
+      "label": "locks dependency versions",
+      "strength": "strong"
+    },
+    {
+      "source": "file_package.json",
+      "target": "file_guardog.md",
+      "type": "references",
+      "label": "skill defined in bin entry guardog",
+      "strength": "medium"
+    },
+    {
+      "source": "file_install.sh",
+      "target": "file_guardog.md",
+      "type": "installs",
+      "label": "copies guardog.md to ~/.claude/skills/",
+      "strength": "strong"
+    },
+    {
+      "source": "file_install.sh",
+      "target": "file_.env.example",
+      "type": "references",
+      "label": "prompts for VIRUSTOTAL_API_KEY, saves to .env",
+      "strength": "medium"
+    },
+    {
+      "source": "file_CLAUDE.md",
+      "target": "file_README.md",
+      "type": "related",
+      "label": "both document guardog security scanner",
+      "strength": "strong"
+    },
+    {
+      "source": "file_CLAUDE.md",
+      "target": "file_CONTEXT.md",
+      "type": "related",
+      "label": "CLAUDE.md is internal, CONTEXT.md is project overview",
+      "strength": "medium"
+    },
+    {
+      "source": "file_README.md",
+      "target": "file_CONTEXT.md",
+      "type": "references",
+      "label": "CONTEXT.md provides project setup details referenced in README",
+      "strength": "medium"
+    },
+    {
+      "source": "file_README.md",
+      "target": "file_.env.example",
+      "type": "references",
+      "label": "documents VirusTotal API key setup",
+      "strength": "medium"
+    },
+    {
+      "source": "file_CONTEXT.md",
+      "target": "file_MANIFEST.md",
+      "type": "related",
+      "label": "both provide operational context and structure",
+      "strength": "medium"
+    },
+    {
+      "source": "file_MANIFEST.md",
+      "target": "file_INDEX.md",
+      "type": "related",
+      "label": "manifest documents operations, index lists files",
+      "strength": "weak"
+    },
+    {
+      "source": "file_.gitignore",
+      "target": "file_.npmignore",
+      "type": "related",
+      "label": "both define exclusion patterns, npmignore is stricter",
+      "strength": "strong"
+    },
+    {
+      "source": "file_SECURITY.md",
+      "target": "file_.env.example",
+      "type": "references",
+      "label": "security policy forbids sharing .env files in reports",
+      "strength": "medium"
+    },
+    {
+      "source": "file_guardog.md",
+      "target": "file_CLAUDE.md",
+      "type": "implements",
+      "label": "skill implements /guardog command documented in CLAUDE.md",
+      "strength": "strong"
+    },
+    {
+      "source": "file_install.sh",
+      "target": "file_LICENSE",
+      "type": "references",
+      "label": "installer distributes MIT licensed code",
+      "strength": "weak"
+    },
+    {
+      "source": "file_package.json",
+      "target": "file_LICENSE",
+      "type": "references",
+      "label": "package metadata declares MIT license",
+      "strength": "weak"
+    }
+  ]
+}

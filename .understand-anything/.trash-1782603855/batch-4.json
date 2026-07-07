@@ -1,0 +1,472 @@
+{
+  "batchNumber": 4,
+  "projectName": "guard-dog",
+  "projectRoot": "/Users/myos/.myos/workspace/agents/guard-dog",
+  "filesAnalyzed": 6,
+  "totalLines": 194,
+  "analysisTimestamp": "2026-06-28T00:00:00Z",
+  "extractionResults": {
+    "scriptCompleted": true,
+    "filesAnalyzed": 6,
+    "filesSkipped": [],
+    "results": [
+      {
+        "path": "bin/consolidate-logs.sh",
+        "language": "shell",
+        "fileCategory": "script",
+        "totalLines": 18,
+        "nonEmptyLines": 13
+      },
+      {
+        "path": "bin/cron-nightly-scan.sh",
+        "language": "shell",
+        "fileCategory": "script",
+        "totalLines": 50,
+        "nonEmptyLines": 41
+      },
+      {
+        "path": "bin/git-precommit-hook.sh",
+        "language": "shell",
+        "fileCategory": "script",
+        "totalLines": 53,
+        "nonEmptyLines": 43
+      },
+      {
+        "path": "bin/npm-postinstall-hook.sh",
+        "language": "shell",
+        "fileCategory": "script",
+        "totalLines": 21,
+        "nonEmptyLines": 17
+      },
+      {
+        "path": "bin/run-cso.sh",
+        "language": "shell",
+        "fileCategory": "script",
+        "totalLines": 11,
+        "nonEmptyLines": 8
+      },
+      {
+        "path": "bin/threat-intel-scan.sh",
+        "language": "shell",
+        "fileCategory": "script",
+        "totalLines": 41,
+        "nonEmptyLines": 33
+      }
+    ]
+  },
+  "graphNodes": [
+    {
+      "id": "file-consolidate-logs",
+      "label": "consolidate-logs.sh",
+      "type": "script",
+      "category": "operational",
+      "filePath": "bin/consolidate-logs.sh",
+      "lineRange": [1, 18],
+      "description": "Monthly log consolidation and archival",
+      "purpose": "Archive monthly logs and reports to timestamped directories",
+      "triggers": ["manual", "cron"]
+    },
+    {
+      "id": "file-cron-nightly-scan",
+      "label": "cron-nightly-scan.sh",
+      "type": "script",
+      "category": "operational",
+      "filePath": "bin/cron-nightly-scan.sh",
+      "lineRange": [1, 50],
+      "description": "Nightly cron scanner for workspace packages",
+      "purpose": "Scan all package.json files in workspace for vulnerabilities at 02:30 GMT+8 daily",
+      "triggers": ["cron", "scheduled"],
+      "env": ["GUARDOG_WORKSPACE", "PATH"]
+    },
+    {
+      "id": "file-git-precommit-hook",
+      "label": "git-precommit-hook.sh",
+      "type": "script",
+      "category": "operational",
+      "filePath": "bin/git-precommit-hook.sh",
+      "lineRange": [1, 53],
+      "description": "Git pre-commit hook for dependency scanning",
+      "purpose": "Block commits if dangerous dependencies detected in package.json changes",
+      "triggers": ["git-hook", "pre-commit"],
+      "blocking": true
+    },
+    {
+      "id": "file-npm-postinstall-hook",
+      "label": "npm-postinstall-hook.sh",
+      "type": "script",
+      "category": "operational",
+      "filePath": "bin/npm-postinstall-hook.sh",
+      "lineRange": [1, 21],
+      "description": "npm postinstall hook for dependency scanning",
+      "purpose": "Scan dependencies during npm install without blocking installation",
+      "triggers": ["npm-hook", "postinstall"],
+      "blocking": false
+    },
+    {
+      "id": "file-run-cso",
+      "label": "run-cso.sh",
+      "type": "script",
+      "category": "operational",
+      "filePath": "bin/run-cso.sh",
+      "lineRange": [1, 11],
+      "description": "Code security review runner (currently disabled)",
+      "purpose": "Execute code-level vulnerability analysis via /gstack-cso after package-level alerts",
+      "triggers": ["manual"],
+      "status": "disabled"
+    },
+    {
+      "id": "file-threat-intel-scan",
+      "label": "threat-intel-scan.sh",
+      "type": "script",
+      "category": "operational",
+      "filePath": "bin/threat-intel-scan.sh",
+      "lineRange": [1, 41],
+      "description": "Threat intelligence daily scanner",
+      "purpose": "Run daily threat intel scans and sync vulnerability findings to MC database at 03:00 AM",
+      "triggers": ["cron", "scheduled"],
+      "logManagement": true
+    },
+    {
+      "id": "cmd-scan-deps-js",
+      "label": "scan-deps.js",
+      "type": "command",
+      "category": "analysis",
+      "description": "Core dependency scanner executable",
+      "purpose": "Analyze packages for CVEs, malicious patterns, and reputation signals",
+      "modes": ["default", "changed-only"],
+      "decisionLevels": ["BARK", "WHINE", "SILENT"]
+    },
+    {
+      "id": "cmd-threat-intel-daily-js",
+      "label": "threat-intel-daily.js",
+      "type": "command",
+      "category": "analysis",
+      "description": "Threat intelligence daily analysis",
+      "purpose": "Execute daily threat intelligence scans against package repositories"
+    },
+    {
+      "id": "cmd-sync-vulns-to-db-js",
+      "label": "sync-vulns-to-db.js",
+      "type": "command",
+      "category": "database",
+      "description": "Vulnerability database sync",
+      "purpose": "Synchronize vulnerability findings to Mission Control database"
+    },
+    {
+      "id": "data-logs-archive",
+      "label": "logs directory",
+      "type": "data",
+      "category": "storage",
+      "description": "Log files directory",
+      "purpose": "Store execution logs from scans"
+    },
+    {
+      "id": "data-reports-archive",
+      "label": "reports directory",
+      "type": "data",
+      "category": "storage",
+      "description": "Reports directory",
+      "purpose": "Store scan reports"
+    },
+    {
+      "id": "hook-trigger-precommit",
+      "label": "Git pre-commit trigger",
+      "type": "trigger",
+      "category": "integration",
+      "description": "Git hook integration point",
+      "purpose": "Execute scan before commit creation"
+    },
+    {
+      "id": "hook-trigger-postinstall",
+      "label": "npm postinstall trigger",
+      "type": "trigger",
+      "category": "integration",
+      "description": "npm hook integration point",
+      "purpose": "Execute scan after npm install"
+    },
+    {
+      "id": "hook-trigger-cron",
+      "label": "Cron scheduler",
+      "type": "trigger",
+      "category": "integration",
+      "description": "Scheduled execution trigger",
+      "purpose": "Execute scans on schedule"
+    },
+    {
+      "id": "service-mission-control",
+      "label": "Mission Control",
+      "type": "external-service",
+      "category": "integration",
+      "description": "Live system dashboard",
+      "purpose": "Database backend for vulnerability tracking and reporting"
+    }
+  ],
+  "graphEdges": [
+    {
+      "source": "file-cron-nightly-scan",
+      "target": "cmd-scan-deps-js",
+      "label": "invokes",
+      "type": "calls",
+      "description": "Calls scan-deps.js for each package.json in workspace",
+      "mode": "loop",
+      "weight": "primary"
+    },
+    {
+      "source": "file-git-precommit-hook",
+      "target": "cmd-scan-deps-js",
+      "label": "invokes",
+      "type": "calls",
+      "description": "Calls scan-deps.js with --changed-only mode for staged changes",
+      "mode": "conditional",
+      "weight": "primary"
+    },
+    {
+      "source": "file-npm-postinstall-hook",
+      "target": "cmd-scan-deps-js",
+      "label": "invokes",
+      "type": "calls",
+      "description": "Calls scan-deps.js for current project during npm install",
+      "weight": "primary"
+    },
+    {
+      "source": "file-threat-intel-scan",
+      "target": "cmd-threat-intel-daily-js",
+      "label": "invokes",
+      "type": "calls",
+      "description": "Executes threat intelligence daily scanner",
+      "weight": "primary"
+    },
+    {
+      "source": "file-threat-intel-scan",
+      "target": "cmd-sync-vulns-to-db-js",
+      "label": "invokes",
+      "type": "calls",
+      "description": "Syncs threat intel findings to Mission Control database",
+      "condition": "on success",
+      "weight": "primary"
+    },
+    {
+      "source": "file-consolidate-logs",
+      "target": "data-logs-archive",
+      "label": "archives",
+      "type": "data-flow",
+      "description": "Compresses and archives monthly logs",
+      "weight": "primary"
+    },
+    {
+      "source": "file-consolidate-logs",
+      "target": "data-reports-archive",
+      "label": "archives",
+      "type": "data-flow",
+      "description": "Compresses and archives monthly reports",
+      "weight": "primary"
+    },
+    {
+      "source": "hook-trigger-precommit",
+      "target": "file-git-precommit-hook",
+      "label": "triggers",
+      "type": "execution",
+      "description": "Git hook mechanism invokes pre-commit script",
+      "weight": "primary"
+    },
+    {
+      "source": "hook-trigger-postinstall",
+      "target": "file-npm-postinstall-hook",
+      "label": "triggers",
+      "type": "execution",
+      "description": "npm hook mechanism invokes postinstall script",
+      "weight": "primary"
+    },
+    {
+      "source": "hook-trigger-cron",
+      "target": "file-cron-nightly-scan",
+      "label": "triggers",
+      "type": "execution",
+      "description": "Scheduled task runs nightly scan at 02:30 GMT+8",
+      "schedule": "30 2 * * *",
+      "weight": "primary"
+    },
+    {
+      "source": "hook-trigger-cron",
+      "target": "file-threat-intel-scan",
+      "label": "triggers",
+      "type": "execution",
+      "description": "Scheduled task runs threat intel scan at 03:00 AM daily",
+      "schedule": "0 3 * * *",
+      "weight": "primary"
+    },
+    {
+      "source": "file-cron-nightly-scan",
+      "target": "data-logs-archive",
+      "label": "writes to",
+      "type": "data-flow",
+      "description": "Generates scan logs during execution",
+      "weight": "secondary"
+    },
+    {
+      "source": "file-threat-intel-scan",
+      "target": "data-logs-archive",
+      "label": "writes to",
+      "type": "data-flow",
+      "description": "Appends results to threat-intel.log with log rotation",
+      "weight": "secondary"
+    },
+    {
+      "source": "file-git-precommit-hook",
+      "target": "hook-trigger-precommit",
+      "label": "installed as",
+      "type": "integration",
+      "description": "Registered as .git/hooks/pre-commit or global core.hooksPath",
+      "weight": "secondary"
+    },
+    {
+      "source": "file-npm-postinstall-hook",
+      "target": "hook-trigger-postinstall",
+      "label": "installed as",
+      "type": "integration",
+      "description": "Referenced in package.json scripts.postinstall",
+      "weight": "secondary"
+    },
+    {
+      "source": "cmd-scan-deps-js",
+      "target": "service-mission-control",
+      "label": "reports to",
+      "type": "integration",
+      "description": "Decision levels (BARK/WHINE/SILENT) integrated with MC alerting",
+      "weight": "secondary"
+    },
+    {
+      "source": "file-threat-intel-scan",
+      "target": "service-mission-control",
+      "label": "syncs with",
+      "type": "integration",
+      "description": "Sends vulnerability findings to MC database via sync script",
+      "weight": "primary"
+    },
+    {
+      "source": "cmd-sync-vulns-to-db-js",
+      "target": "service-mission-control",
+      "label": "writes to",
+      "type": "data-flow",
+      "description": "Persists vulnerability records to MC database",
+      "weight": "primary"
+    },
+    {
+      "source": "file-git-precommit-hook",
+      "target": "file-run-cso",
+      "label": "can trigger",
+      "type": "cross-reference",
+      "description": "After BARK/WHINE result, user runs /gstack-cso for code-level review",
+      "weight": "secondary"
+    }
+  ],
+  "executionPatterns": [
+    {
+      "id": "pattern-scheduled-scanning",
+      "name": "Scheduled Daily Scanning",
+      "scripts": ["file-cron-nightly-scan", "file-threat-intel-scan"],
+      "description": "Two-phase daily scan: nightly (02:30) for workspace packages, threat-intel (03:00) for vulnerability intelligence",
+      "frequency": "daily",
+      "criticalPath": ["hook-trigger-cron", "file-cron-nightly-scan", "cmd-scan-deps-js"]
+    },
+    {
+      "id": "pattern-commit-blocking",
+      "name": "Commit-Time Scanning",
+      "scripts": ["file-git-precommit-hook"],
+      "description": "Blocks commits when dangerous dependencies detected in package.json changes",
+      "frequency": "on-commit",
+      "criticalPath": ["hook-trigger-precommit", "file-git-precommit-hook", "cmd-scan-deps-js"],
+      "blocking": true
+    },
+    {
+      "id": "pattern-install-scanning",
+      "name": "Install-Time Scanning",
+      "scripts": ["file-npm-postinstall-hook"],
+      "description": "Scans dependencies after npm install without blocking the installation process",
+      "frequency": "on-install",
+      "criticalPath": ["hook-trigger-postinstall", "file-npm-postinstall-hook", "cmd-scan-deps-js"],
+      "blocking": false
+    },
+    {
+      "id": "pattern-log-management",
+      "name": "Monthly Log Consolidation",
+      "scripts": ["file-consolidate-logs"],
+      "description": "Archives monthly logs and reports to timestamped directories with monthly index",
+      "frequency": "monthly",
+      "criticalPath": ["file-consolidate-logs", "data-logs-archive", "data-reports-archive"]
+    },
+    {
+      "id": "pattern-threat-intel-pipeline",
+      "name": "Threat Intelligence Pipeline",
+      "scripts": ["file-threat-intel-scan"],
+      "description": "Daily threat intelligence scan with database sync and log rotation (5000 line limit)",
+      "frequency": "daily",
+      "criticalPath": ["file-threat-intel-scan", "cmd-threat-intel-daily-js", "cmd-sync-vulns-to-db-js", "service-mission-control"]
+    }
+  ],
+  "deploymentHooks": [
+    {
+      "hookType": "git-hook",
+      "name": "pre-commit",
+      "script": "git-precommit-hook.sh",
+      "installPath": ".git/hooks/pre-commit or global core.hooksPath",
+      "description": "Git pre-commit hook for dependency scanning"
+    },
+    {
+      "hookType": "npm-hook",
+      "name": "postinstall",
+      "script": "npm-postinstall-hook.sh",
+      "installPath": "package.json scripts.postinstall",
+      "description": "npm postinstall hook for dependency scanning"
+    },
+    {
+      "hookType": "cron",
+      "name": "nightly-scan",
+      "script": "cron-nightly-scan.sh",
+      "schedule": "30 2 * * *",
+      "timezone": "GMT+8",
+      "description": "Nightly workspace scan for all package.json files"
+    },
+    {
+      "hookType": "cron",
+      "name": "threat-intel",
+      "script": "threat-intel-scan.sh",
+      "schedule": "0 3 * * *",
+      "timezone": "GMT+8",
+      "launchAgent": "ai.myos.guard-dog-threat-intel",
+      "description": "Daily threat intelligence scan with database sync"
+    }
+  ],
+  "sharedConfiguration": [
+    {
+      "variable": "GUARD_DOG_HOME / GUARD_DOG_DIR",
+      "scripts": ["file-consolidate-logs", "file-cron-nightly-scan", "file-git-precommit-hook", "file-npm-postinstall-hook", "file-run-cso", "file-threat-intel-scan"],
+      "purpose": "Project root directory detection",
+      "resolution": "cd $(dirname ${BASH_SOURCE[0]})/.. && pwd"
+    },
+    {
+      "variable": "PATH",
+      "scripts": ["file-cron-nightly-scan", "file-threat-intel-scan"],
+      "purpose": "Ensure homebrew and system binaries available",
+      "value": "/opt/homebrew/bin:/usr/local/bin:$PATH"
+    },
+    {
+      "variable": "GUARDOG_WORKSPACE",
+      "scripts": ["file-cron-nightly-scan"],
+      "purpose": "Configurable workspace root for package discovery",
+      "default": "$HOME"
+    }
+  ],
+  "summary": {
+    "totalScripts": 6,
+    "totalNodes": 15,
+    "totalEdges": 20,
+    "executionPatterns": 5,
+    "deploymentHooks": 4,
+    "coreCommands": 3,
+    "storageAreas": 2,
+    "integrations": 1,
+    "criticalPath": "Scheduled scans (cron) -> scan-deps.js -> Mission Control database",
+    "blockers": "git-precommit-hook.sh can block commits; run-cso.sh currently disabled"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "guardog",
+    "languages": ["javascript", "json", "markdown", "shell"],
+    "frameworks": [],
+    "description": "Package security scanner for npm and PyPI that detects CVEs, reputation signals, malicious patterns, and threat intelligence without requiring AI or token services.",
+    "analyzedAt": "2026-06-28T00:00:00Z",
+    "gitCommitHash": "5377d73a8ccc16ffb4f23644b4ff133e885369b1"
+  },
+  "nodes": [],
+  "edges": [],
+  "layers": [],
+  "tour": []
+}
