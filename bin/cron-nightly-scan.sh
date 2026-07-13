@@ -14,6 +14,10 @@ LOG_DATE=$(date '+%Y-%m-%d %H:%M:%S')
 
 echo "===== Guard Dog Nightly Scan: $LOG_DATE ====="
 
+# Dead-man switch for spending reconciliation. It sends an alert when Scrooge
+# has not written a valid reconciliation state for 26 hours, then scan proceeds.
+node "$GUARD_DOG_DIR/bin/check-scrooge-freshness.cjs" || true
+
 # Find all package.json files in workspace (skip node_modules)
 PACKAGE_FILES=$(find "$WORKSPACE" -name "package.json" \
   -not -path "*/node_modules/*" \
