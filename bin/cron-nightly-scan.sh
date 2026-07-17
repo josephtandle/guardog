@@ -18,6 +18,11 @@ echo "===== Guard Dog Nightly Scan: $LOG_DATE ====="
 # has not written a valid reconciliation state for 26 hours, then scan proceeds.
 node "$GUARD_DOG_DIR/bin/check-scrooge-freshness.cjs" || true
 
+# Dead-man switch for the daily Stripe/Gumroad revenue pull (Revenue Pulse).
+# Redundant with its own 8:30am check; this catches the case where that job
+# itself failed to fire.
+node "$HOME/.myos/workspace/agents/revenue-pulse/bin/check-revenue-pulse-freshness.cjs" || true
+
 # Find all package.json files in workspace (skip node_modules)
 PACKAGE_FILES=$(find "$WORKSPACE" -name "package.json" \
   -not -path "*/node_modules/*" \
