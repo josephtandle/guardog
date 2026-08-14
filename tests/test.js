@@ -399,6 +399,45 @@ async function runTests() {
     test.assert(results[1].packageName === 'lodash', 'Second result should be lodash');
   });
 
+  await test.run('Autonomizer contract and version tracking', async () => {
+    const registryPath = '/Users/myos/.myos/worktrees/autonomizer-ops-wave/agents/agent-registry.json';
+    const registry = JSON.parse(readFileSync(registryPath, 'utf-8'));
+    const entry = registry.find((item) => item.id === 'guard-dog');
+
+    test.assert(entry, 'Guard Dog registry entry should exist');
+    test.assert(entry.version === '0.2.0', 'Guard Dog registry version should be tracked');
+    test.assert(Array.isArray(entry.capability_log) && entry.capability_log.length > 0, 'Guard Dog registry capability log should exist');
+
+    const contract = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../autonomizer.json'), 'utf-8'));
+    test.assert(contract.agentId === 'guard-dog', 'Contract agentId should match guard-dog');
+    test.assert(contract.version === '1.1.0', 'Guard Dog contract version should be tracked');
+    test.assert(contract.reflectionQuestions.length === 5, 'Guard Dog should have a five-question self-improving loop');
+    test.assert(
+      contract.reflectionQuestions.some((q) => /how could this get even better\?/i.test(q.prompt)),
+      'Guard Dog contract should ask how it could get even better'
+    );
+    test.assert(
+      contract.reflectionQuestions.some((q) => /what else can i do\?/i.test(q.prompt)),
+      'Guard Dog contract should ask what else it can do'
+    );
+    test.assert(
+      contract.reflectionQuestions.some((q) => /what can be more automated within our safeguards\?/i.test(q.prompt)),
+      'Guard Dog contract should ask what can be more automated within safeguards'
+    );
+    test.assert(
+      contract.reflectionQuestions.some((q) => /what evidence/i.test(q.prompt)),
+      'Guard Dog contract should ask for evidence'
+    );
+    test.assert(
+      contract.reflectionQuestions.some((q) => /what manual approval/i.test(q.prompt)),
+      'Guard Dog contract should ask what manual approval remains'
+    );
+    test.assert(typeof contract.lastAutonomizerUpdate === 'string' && !Number.isNaN(Date.parse(contract.lastAutonomizerUpdate)), 'Guard Dog contract should track the last Autonomizer update time');
+
+    const packageJson = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../package.json'), 'utf-8'));
+    test.assert(packageJson.version === '1.1.0', 'Guard Dog package version should be bumped');
+  });
+
   // Summary
   const allPassed = test.summary();
   process.exit(allPassed ? 0 : 1);
