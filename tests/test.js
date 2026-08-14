@@ -400,14 +400,6 @@ async function runTests() {
   });
 
   await test.run('Autonomizer contract and version tracking', async () => {
-    const registryPath = '/Users/myos/.myos/worktrees/autonomizer-ops-wave/agents/agent-registry.json';
-    const registry = JSON.parse(readFileSync(registryPath, 'utf-8'));
-    const entry = registry.find((item) => item.id === 'guard-dog');
-
-    test.assert(entry, 'Guard Dog registry entry should exist');
-    test.assert(entry.version === '0.2.0', 'Guard Dog registry version should be tracked');
-    test.assert(Array.isArray(entry.capability_log) && entry.capability_log.length > 0, 'Guard Dog registry capability log should exist');
-
     const contract = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../autonomizer.json'), 'utf-8'));
     test.assert(contract.agentId === 'guard-dog', 'Contract agentId should match guard-dog');
     test.assert(contract.version === '1.1.0', 'Guard Dog contract version should be tracked');
@@ -429,8 +421,8 @@ async function runTests() {
       'Guard Dog contract should ask for evidence'
     );
     test.assert(
-      contract.reflectionQuestions.some((q) => /what manual approval/i.test(q.prompt)),
-      'Guard Dog contract should ask what manual approval remains'
+      contract.reflectionQuestions.some((q) => /what safe internal follow-up/i.test(q.prompt)),
+      'Guard Dog contract should ask what safe internal follow-up remains'
     );
     test.assert(typeof contract.lastAutonomizerUpdate === 'string' && !Number.isNaN(Date.parse(contract.lastAutonomizerUpdate)), 'Guard Dog contract should track the last Autonomizer update time');
 

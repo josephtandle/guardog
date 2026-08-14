@@ -11,7 +11,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "node tests/test.js",
+    "test": "node tests/test.js && node --test tests/autonomizer-contract.test.cjs",
     "scan": "node bin/scan-deps.js",
     "setup": "node src/index.js setup",
     "cron": "node bin/nightly-scan.js"
@@ -19,6 +19,7 @@
   "files": [
     ".env.example",
     "README.md",
+    "autonomizer.json",
     "LICENSE",
     "SECURITY.md",
     "MANIFEST.md",

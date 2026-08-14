@@ -1,26 +1,27 @@
 {
   "version": "1.1.0",
   "agentId": "guard-dog",
-  "loopBoundary": "Read-only package and threat-intel scanning, held-reason reporting, and owned learning updates. Package installs and source mutation stay gated.",
+  "loopBoundary": "Read-only package-security evidence, verdict drafting without enforcement, and GuardDog-owned local scan records.",
   "autonomousActions": [
-    "read-only package and threat-intel scanning",
-    "classify scan findings and draft held-reason summaries",
-    "update GuardDog-owned scan status and learning records",
-    "refresh cached scan evidence without changing package source"
+    "Read-only dependency, package, CVE, reputation, pattern, and threat-intel scans",
+    "Report or verdict drafting without enforcement",
+    "GuardDog-owned local cache and scan-history writes"
   ],
   "approvalRequiredActions": [
-    "install, uninstall, or modify packages and hooks",
-    "send alerts, reports, or external notifications",
-    "change credentials, tokens, or provider permissions",
-    "quarantine, deletion, or source mutation",
-    "protected flow mutation or destructive action"
+    "Approval required for external sends and Telegram notifications",
+    "Approval required for schedules, cron jobs, and hooks",
+    "Approval required for package or dependency installs, upgrades, removals, or blocking",
+    "Approval required for authentication, secrets, and credentials",
+    "Approval required for quarantine, deletion, and destructive actions",
+    "Approval required for protected flows",
+    "Approval required for security verdict, allowlist, and policy changes"
   ],
   "reflectionQuestions": [
-    { "id": "even_better", "prompt": "How could this get even better?" },
-    { "id": "what_else", "prompt": "What else can I do?" },
-    { "id": "more_automated", "prompt": "What can be more automated within our safeguards?" },
-    { "id": "evidence", "prompt": "What evidence supports the hold or allow decision?" },
-    { "id": "manual_approval", "prompt": "What manual approval boundary must remain untouched?" }
+    { "id": "guard_dog_improve", "prompt": "How could this get even better?" },
+    { "id": "guard_dog_more", "prompt": "What else can I do?" },
+    { "id": "guard_dog_automation", "prompt": "What can be more automated within our safeguards?" },
+    { "id": "guard_dog_evidence", "prompt": "What evidence would prove this conclusion is correct?" },
+    { "id": "guard_dog_follow_up", "prompt": "What safe internal follow-up remains undone?" }
   ],
-  "lastAutonomizerUpdate": "2026-08-14T00:00:00.000Z"
+  "lastAutonomizerUpdate": "2026-08-14T07:34:39.550Z"
 }
