@@ -1,0 +1,26 @@
+{
+  "version": "1.1.0",
+  "agentId": "guard-dog",
+  "loopBoundary": "Read-only package and threat-intel scanning, held-reason reporting, and owned learning updates. Package installs and source mutation stay gated.",
+  "autonomousActions": [
+    "read-only package and threat-intel scanning",
+    "classify scan findings and draft held-reason summaries",
+    "update GuardDog-owned scan status and learning records",
+    "refresh cached scan evidence without changing package source"
+  ],
+  "approvalRequiredActions": [
+    "install, uninstall, or modify packages and hooks",
+    "send alerts, reports, or external notifications",
+    "change credentials, tokens, or provider permissions",
+    "quarantine, deletion, or source mutation",
+    "protected flow mutation or destructive action"
+  ],
+  "reflectionQuestions": [
+    { "id": "even_better", "prompt": "How could this get even better?" },
+    { "id": "what_else", "prompt": "What else can I do?" },
+    { "id": "more_automated", "prompt": "What can be more automated within our safeguards?" },
+    { "id": "evidence", "prompt": "What evidence supports the hold or allow decision?" },
+    { "id": "manual_approval", "prompt": "What manual approval boundary must remain untouched?" }
+  ],
+  "lastAutonomizerUpdate": "2026-08-14T00:00:00.000Z"
+}
