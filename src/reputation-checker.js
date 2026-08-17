@@ -3,8 +3,6 @@
  * Queries npm/PyPI/GitHub for package metadata and reputation signals
  */
 
-import fetch from 'node-fetch';
-
 export class ReputationChecker {
   constructor(config) {
     this.config = config.reputation;

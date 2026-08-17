@@ -1,85 +1,25 @@
-#!/bin/bash
-# Guardog legacy install script.
-# Recommended cross-platform install:
-#   npm install -g github:josephtandle/guardog
-#   guardog setup
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+guardog_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-GUARD_DOG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILLS_DIR="$HOME/.claude/skills"
-HOOKS_DIR="$GUARD_DOG_DIR/bin/hooks"
+if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
+  echo "Guardog needs Node.js 18 or newer: https://nodejs.org/"
+  exit 1
+fi
+
+echo "Installing Guardog from this folder..."
+npm install --global "$guardog_dir"
+
+echo "Applying safe local defaults..."
+node "$guardog_dir/src/index.js" setup --quick
 
 echo ""
-echo "🐕 Guardog Installer"
-echo "────────────────────────────────────────"
-echo "Recommended cross-platform path:"
-echo "  npm install -g github:josephtandle/guardog"
-echo "  guardog setup"
-echo ""
-
-# 1. Install npm dependencies
-echo "📦 Installing dependencies..."
-cd "$GUARD_DOG_DIR"
-npm install --silent
-echo "   Done."
-
-# 2. Create data directory
-mkdir -p "$GUARD_DOG_DIR/data"
-
-# 3. Install Claude Code skill
-if [ -d "$SKILLS_DIR" ]; then
-  cp "$GUARD_DOG_DIR/guardog.md" "$SKILLS_DIR/guardog.md"
-  echo "🧠 Claude Code skill installed → $SKILLS_DIR/guardog.md"
+echo "Guardog is ready."
+if command -v guardog >/dev/null 2>&1; then
+  echo "Try: guardog analyze lodash npm"
+  echo "Optional VirusTotal setup: guardog setup"
 else
-  echo "⚠️  Claude Code skills directory not found ($SKILLS_DIR)"
-  echo "   Manually copy guardog.md to your Claude skills folder."
+  echo "Guardog installed, but npm's global command folder is not on PATH yet."
+  echo "Open a new terminal, then run: guardog doctor"
 fi
-
-# 4. Set up global git pre-commit hook (optional)
-read -p "
-Install git pre-commit hook globally? (scans changed packages before every commit) [y/N] " INSTALL_HOOK
-if [[ "$INSTALL_HOOK" =~ ^[Yy]$ ]]; then
-  mkdir -p "$HOOKS_DIR"
-  cp "$GUARD_DOG_DIR/bin/git-precommit-hook.sh" "$HOOKS_DIR/pre-commit"
-  chmod +x "$HOOKS_DIR/pre-commit"
-  git config --global core.hooksPath "$HOOKS_DIR"
-  echo "   ✅ Git hook installed globally."
-fi
-
-# 5. VirusTotal API key setup
-echo ""
-echo "────────────────────────────────────────"
-echo "🔍 VirusTotal API key (highly recommended)"
-echo ""
-echo "   Free tier: 4 req/min, 500/day — enough for everyday use."
-echo "   Sign up at: https://www.virustotal.com/gui/join-us"
-echo ""
-read -p "   Paste your VirusTotal API key (or press Enter to skip): " VT_KEY
-if [ -n "$VT_KEY" ]; then
-  echo "VIRUSTOTAL_API_KEY=$VT_KEY" > "$GUARD_DOG_DIR/.env"
-  echo "   ✅ Saved to $GUARD_DOG_DIR/.env"
-else
-  echo "   Skipped. Add it later: echo 'VIRUSTOTAL_API_KEY=your_key' > ~/guardog/.env"
-fi
-
-# 6. Run the Node setup wizard when available
-if command -v node >/dev/null 2>&1; then
-  echo ""
-  echo "Starting Guardog setup wizard..."
-  node "$GUARD_DOG_DIR/src/index.js" setup
-fi
-
-# 7. Done
-echo ""
-echo "────────────────────────────────────────"
-echo "✅ Guardog installed!"
-echo ""
-echo "Usage:"
-echo "  guardog analyze lodash npm"
-echo "  guardog analyze requests pypi"
-echo ""
-if [ -d "$SKILLS_DIR" ]; then
-  echo "  Or in Claude Code: /guardog lodash"
-fi
-echo ""

@@ -14,11 +14,10 @@ import { ReputationChecker } from '../scanners/reputation-checker.js';
 import { CVEChecker } from '../scanners/cve-checker.js';
 import { PatternAnalyzer } from '../scanners/pattern-analyzer.js';
 import { DecisionTree } from './decision-tree.js';
-import { TelegramAlert } from '../alerts/telegram-alert.js';
 import { ThreatIntel } from '../scanners/threat-intel.js';
 
 // Load environment variables
-dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../../../.env') });
+dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../../../.env'), quiet: true });
 
 export class GuardDog {
   constructor() {
@@ -45,7 +44,6 @@ export class GuardDog {
     this.cveChecker = new CVEChecker(this.config);
     this.patternAnalyzer = new PatternAnalyzer(this.config);
     this.decisionTree = new DecisionTree(this.config, this.trustedProviders);
-    this.telegram = new TelegramAlert(this.config);
 
     // Initialize threat intel (optional — uses cache if available)
     try {
@@ -210,17 +208,6 @@ export class GuardDog {
       }
     }
 
-    // Step 7: Alert if dangerous
-    if (decision.action === 'BARK') {
-      console.log('🚨 DANGER DETECTED - Sending Telegram alert...');
-      const alertSent = await this.telegram.sendDangerAlert(packageName, decision);
-      if (alertSent) {
-        console.log('✓ Telegram alert sent');
-      } else {
-        console.log('✗ Telegram alert failed');
-      }
-    }
-
     // Print results
     console.log('\n' + this.decisionTree.formatDecision(decision));
 
@@ -319,7 +306,6 @@ export class GuardDog {
       config: false,
       virustotal: false,
       reputation: false,
-      telegram: false,
       threatIntel: false
     };
 
@@ -348,9 +334,6 @@ export class GuardDog {
     } catch (error) {
       console.log('✗ Reputation test failed:', error.message);
     }
-
-    console.log('📱 Testing Telegram connection...');
-    tests.telegram = await this.telegram.testConnection();
 
     console.log('🛡 Testing threat intel...');
     if (this.threatIntel) {

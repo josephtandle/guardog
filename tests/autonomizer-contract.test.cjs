@@ -13,7 +13,7 @@ const expectedPrompts = [
   'What safe internal follow-up remains undone?'
 ];
 
-assert.equal(contract.version, '1.1.0');
+assert.equal(contract.version, '1.2.0');
 assert.equal(contract.agentId, 'guard-dog');
 assert.equal(typeof contract.loopBoundary, 'string');
 assert.ok(contract.loopBoundary.trim());
@@ -23,5 +23,5 @@ assert.equal(new Set(contract.reflectionQuestions.map(({ id }) => id)).size, 5);
 assert.ok(contract.reflectionQuestions.every(({ id }) => /^guard_dog_/.test(id)));
 assert.ok(contract.autonomousActions.every((action) => /read-only|drafting without enforcement|owned local/i.test(action)));
 assert.ok(contract.approvalRequiredActions.every((action) => /^Approval required/i.test(action)));
-assert.equal(packageManifest.version, '1.1.0');
+assert.equal(packageManifest.version, '1.2.0');
 assert.ok(packageManifest.files.includes('autonomizer.json'));

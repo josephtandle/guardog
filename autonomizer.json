@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "agentId": "guard-dog",
   "loopBoundary": "Read-only package-security evidence, verdict drafting without enforcement, and GuardDog-owned local scan records.",
   "autonomousActions": [
@@ -8,7 +8,7 @@
     "GuardDog-owned local cache and scan-history writes"
   ],
   "approvalRequiredActions": [
-    "Approval required for external sends and Telegram notifications",
+    "Approval required before adding any future external notification or message-send capability",
     "Approval required for schedules, cron jobs, and hooks",
     "Approval required for package or dependency installs, upgrades, removals, or blocking",
     "Approval required for authentication, secrets, and credentials",
@@ -23,5 +23,5 @@
     { "id": "guard_dog_evidence", "prompt": "What evidence would prove this conclusion is correct?" },
     { "id": "guard_dog_follow_up", "prompt": "What safe internal follow-up remains undone?" }
   ],
-  "lastAutonomizerUpdate": "2026-08-14T07:34:39.550Z"
+  "lastAutonomizerUpdate": "2026-08-17T00:00:00.000Z"
 }

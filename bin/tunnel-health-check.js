@@ -7,7 +7,7 @@
  *   com.myos.postiz-tunnel      → localhost:4200  (Postiz social scheduler)
  * Legacy tunnel aliases are still accepted during migration.
  *
- * Sends a Telegram alert if either tunnel is down.
+ * Reports a non-zero exit when any tunnel remains down after recovery.
  *
  * Usage:
  *   node bin/tunnel-health-check.js
@@ -16,26 +16,9 @@
  *   * /5 * * * * /opt/homebrew/bin/node /path/to/bin/tunnel-health-check.js >> /path/to/data/cron.log 2>&1
  */
 
-import fetch from 'node-fetch';
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 import { spawnSync } from 'child_process';
-import dotenv from 'dotenv';
-import { createRequire } from 'module';
-const _require = createRequire(import.meta.url);
-const { sendMessage: _sharedSendMessage } = _require('../../shared/telegram-send.js');
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const rootDir = join(__dirname, '..');
 const LEGACY_NAMESPACE = Buffer.from('b3BlbmNsYXc=', 'base64').toString('utf8');
 const legacyTunnelLabel = (suffix) => `com.${LEGACY_NAMESPACE}.${suffix}`;
-
-// Load env: first try the guard-dog local .env, then fall back to workspace .env
-dotenv.config({ path: join(rootDir, '.env') });
-if (!process.env.TELEGRAM_BOT_TOKEN) {
-  dotenv.config({ path: join(rootDir, '../../.env') });
-}
 
 // ---- Tunnel definitions -----------------------------------------------
 
@@ -75,30 +58,6 @@ const TUNNELS = [
 ];
 
 const TIMEOUT_MS = 5000;
-
-// ---- Alert suppression state ------------------------------------------
-// Tracks whether an alert has already been sent for the current outage.
-// Cleared when all tunnels return healthy so the next outage gets a fresh alert.
-
-const ALERT_STATE_FILE = join(rootDir, 'data/tunnel-alert-state.json');
-
-function isAlertSuppressed() {
-  if (!existsSync(ALERT_STATE_FILE)) return false;
-  try {
-    const state = JSON.parse(readFileSync(ALERT_STATE_FILE, 'utf8'));
-    return state.alertActive === true;
-  } catch {
-    return false;
-  }
-}
-
-function markAlertSent() {
-  writeFileSync(ALERT_STATE_FILE, JSON.stringify({ alertActive: true, sentAt: new Date().toISOString() }));
-}
-
-function clearAlertState() {
-  if (existsSync(ALERT_STATE_FILE)) unlinkSync(ALERT_STATE_FILE);
-}
 
 // ---- HTTP probe -------------------------------------------------------
 
@@ -154,56 +113,6 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// ---- Telegram alert ---------------------------------------------------
-
-async function sendAlert(downTunnels, restartAttempted = false) {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-
-  if (!botToken || !chatId) {
-    console.error('Telegram credentials missing — cannot send alert');
-    return false;
-  }
-
-  const lines = downTunnels.map(({ tunnel, result }) => {
-    const detail = result.error
-      ? `error: ${result.error}`
-      : `HTTP ${result.status}`;
-    return `• \`${tunnel.name}\` (${tunnel.url}) — ${detail}`;
-  });
-
-  const recoveryNote = restartAttempted
-    ? `\n⚠️ _Auto-restart was attempted (launchctl kickstart) but tunnel is still down._\n`
-    : ``;
-
-  const message =
-    `🚨 *GUARD DOG: SSH TUNNEL DOWN*\n\n` +
-    `The following tunnel(s) are not responding:\n\n` +
-    lines.join('\n') +
-    recoveryNote +
-    `\n\nRestart with:\n` +
-    downTunnels
-      .map(({ tunnel }) => {
-        const labels = [tunnel.launchd, tunnel.legacyLaunchd].filter(Boolean).join(' or ');
-        return `\`launchctl start ${labels}\``;
-      })
-      .join('\n') +
-    `\n\n⏰ ${new Date().toISOString()}`;
-
-  try {
-    const apiBase = `https://api.telegram.org/bot${botToken}`;
-    await _sharedSendMessage(apiBase, chatId, message, {
-      agentId: 'guard-dog',
-      messageType: 'alert',
-      extraPayload: { disable_web_page_preview: true },
-    });
-    return true;
-  } catch (err) {
-    console.error('Failed to send Telegram alert:', err.message);
-    return false;
-  }
-}
-
 // ---- Main -------------------------------------------------------------
 
 const timestamp = new Date().toISOString();
@@ -224,10 +133,9 @@ const results = await Promise.all(
 const downTunnels = results.filter(({ result }) => !result.ok);
 
 if (downTunnels.length === 0) {
-  clearAlertState();
   console.log('All tunnels healthy.');
 } else {
-  console.log(`${downTunnels.length} tunnel(s) down — attempting auto-recovery before alert`);
+  console.log(`${downTunnels.length} tunnel(s) down, attempting auto-recovery`);
 
   // Step 1: kick each failed tunnel
   for (const { tunnel } of downTunnels) {
@@ -254,19 +162,11 @@ if (downTunnels.length === 0) {
   const stillDown = recheckResults.filter(({ result }) => !result.ok);
 
   if (stillDown.length === 0) {
-    clearAlertState();
-    console.log('All tunnels recovered via launchctl kickstart. No alert sent.');
-  } else if (isAlertSuppressed()) {
-    console.log(`${stillDown.length} tunnel(s) still down — alert already sent for this outage, suppressing.`);
-    process.exit(1);
+    console.log('All tunnels recovered via launchctl kickstart.');
   } else {
-    console.log(`${stillDown.length} tunnel(s) still down after restart attempt — sending alert`);
-    const sent = await sendAlert(stillDown, /* restartAttempted= */ true);
-    if (sent) {
-      markAlertSent();
-      console.log('Telegram alert sent.');
-    } else {
-      console.log('Telegram alert FAILED.');
+    console.error(`${stillDown.length} tunnel(s) still down after restart attempt:`);
+    for (const { tunnel, result } of stillDown) {
+      console.error(`  ${tunnel.name}: ${result.error || `HTTP ${result.status}`}`);
     }
     process.exit(1);
   }

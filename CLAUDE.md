@@ -4,7 +4,7 @@ Package-level security scanner. Scans npm/pip packages for known CVEs,
 malicious patterns, VirusTotal flags, and reputation signals.
 
 ## Decision Levels
-- BARK (>=100): Danger, Telegram alert sent
+- BARK (>=100): Danger, install blocked
 - WHINE (50-99): Suspicious, warn user
 - SILENT (<50): Safe, pass through
 

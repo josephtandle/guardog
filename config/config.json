@@ -34,9 +34,5 @@
   },
   "patterns": {
     "enabled": true
-  },
-  "telegram": {
-    "enabled": true,
-    "chatId": ""
   }
 }
