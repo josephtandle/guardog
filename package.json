@@ -11,7 +11,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "node tests/test.js && node --test tests/autonomizer-contract.test.cjs && node --test tests/audit-findings.test.cjs",
+    "test": "node tests/test.js && node --test tests/*.test.cjs",
     "scan": "node bin/scan-deps.js",
     "setup": "node src/index.js setup",
     "cron": "node bin/nightly-scan.js"
@@ -37,7 +37,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.4.2",
     "node-fetch": "^3.3.2"
   },
   "keywords": [

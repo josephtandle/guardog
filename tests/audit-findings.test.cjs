@@ -1,9 +1,48 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
-test('T1: importing src/telegram-alert.js does not throw', async () => {
-  const mod = await import('../src/telegram-alert.js');
-  assert.ok(mod.TelegramAlert);
+test('T1: static imports and requires in src/ stay within package root', () => {
+  const srcDir = path.resolve(__dirname, '../src');
+  const packageRootDir = path.resolve(__dirname, '..');
+
+  function getJsFiles(dir) {
+    let results = [];
+    const list = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of list) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        results = results.concat(getJsFiles(fullPath));
+      } else if (entry.isFile() && entry.name.endsWith('.js')) {
+        results.push(fullPath);
+      }
+    }
+    return results;
+  }
+
+  const jsFiles = getJsFiles(srcDir);
+  const importRequireRegex = /(?:import\s+(?:[\s\S]*?\s+from\s+)?['"]([^'"]+)['"]|require\s*\(\s*['"]([^'"]+)['"]\s*\))/g;
+
+  for (const filePath of jsFiles) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    let match;
+    while ((match = importRequireRegex.exec(content)) !== null) {
+      const specifier = match[1] || match[2];
+      if (specifier) {
+        if (specifier.startsWith('../../')) {
+          assert.fail(`File ${path.relative(packageRootDir, filePath)} imports/requires external specifier '${specifier}'`);
+        }
+        if (specifier.startsWith('.')) {
+          const resolvedPath = path.resolve(path.dirname(filePath), specifier);
+          const relativeToRoot = path.relative(packageRootDir, resolvedPath);
+          if (relativeToRoot.startsWith('..') || (path.isAbsolute(relativeToRoot) && !resolvedPath.startsWith(packageRootDir))) {
+            assert.fail(`File ${path.relative(packageRootDir, filePath)} targets path outside package root: '${specifier}'`);
+          }
+        }
+      }
+    }
+  }
 });
 
 test('T2: updateSeverityCounts with moderate severity increments counts.medium', async () => {

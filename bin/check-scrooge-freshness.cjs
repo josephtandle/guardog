@@ -17,20 +17,10 @@ function checkScroogeFreshness({ statePath = DEFAULT_STATE_PATH, now = Date.now(
   if (ageMs > MAX_AGE_MS) return { ok: false, kind: "scrooge_reconciliation_stale", statePath, ageHours: Number((ageMs / 3600000).toFixed(2)), maxAgeHours: 26 };
   return { ok: true, statePath, ageHours: Number((ageMs / 3600000).toFixed(2)), at: state.at };
 }
-async function sendAlert(check) {
-  const { sendReportMessage } = require("../../shared/telegram-send");
-  const { getReportTelegramTarget } = require("../../shared/report-telegram-target");
-  const target = getReportTelegramTarget("mira");
-  if (!target.botToken || !target.chatId) throw new Error("no configured Telegram report target");
-  const detail = check.ageHours === undefined ? check.reason : `age ${check.ageHours}h, maximum 26h`;
-  await sendReportMessage(`https://api.telegram.org/bot${target.botToken}`, target.chatId, `ALERT: Scrooge reconciliation watchdog failed (${check.kind}: ${detail}). Spend monitoring may be blind.`, { agentId: "guard-dog", managerId: "guard-dog", title: "Scrooge dead-man switch", reportType: "alert" }, { messageType: "alert" });
-}
 async function main() {
   const check = checkScroogeFreshness({ statePath: option("--state-path") || process.env.SCROOGE_RECONCILIATION_PATH || DEFAULT_STATE_PATH, now: Number(option("--now") || Date.now()) });
   console.log(JSON.stringify(check));
-  if (!check.ok && !process.argv.includes("--dry-run") && process.env.GUARDOG_SCROOGE_ALERT_DRY_RUN !== "1") {
-    try { await sendAlert(check); } catch (error) { console.error(`[guard-dog] could not deliver Scrooge dead-man alert: ${error.message}`); }
-  }
+  if (!check.ok) process.exitCode = 1;
 }
 if (require.main === module) main().catch((error) => { console.error(`[guard-dog] ${error.message}`); process.exitCode = 1; });
 module.exports = { MAX_AGE_MS, DEFAULT_STATE_PATH, checkScroogeFreshness };

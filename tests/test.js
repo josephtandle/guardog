@@ -62,7 +62,6 @@ async function runTests() {
     test.assert(guardDog, 'Guard Dog should initialize');
     test.assert(guardDog.reputation, 'Reputation checker should be initialized');
     test.assert(guardDog.decisionTree, 'Decision tree should be initialized');
-    test.assert(guardDog.telegram, 'Telegram alert should be initialized');
   });
 
   // Test trusted providers
@@ -258,22 +257,6 @@ async function runTests() {
     test.assert(formatted.includes('Test reason 1'), 'Should include reasons');
   });
 
-  // Test Telegram alert formatting
-  await test.run('Telegram alert formatting', async () => {
-    const decision = {
-      action: 'BARK',
-      threat: 'DANGER',
-      confidence: 90,
-      reasons: ['Malicious code detected'],
-      details: { scan: { maliciousVotes: 5 } }
-    };
-    
-    const message = guardDog.telegram.formatAlertMessage('evil-package', decision);
-    test.assert(message.includes('evil-package'), 'Should include package name');
-    test.assert(message.includes('DANGER'), 'Should include threat level');
-    test.assert(message.includes('90%'), 'Should include confidence');
-  });
-
   // Integration test - analyze a real package
   await test.run('Integration test - analyze trusted package', async () => {
     const result = await guardDog.analyze('lodash', 'npm');
@@ -298,8 +281,7 @@ async function runTests() {
 
   // Test scan history created (Bug 5)
   await test.run('Scan history file created', async () => {
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    const historyPath = join(__dirname, '../data/scan-history.json');
+    const historyPath = join(guardDog.dataDir, 'scan-history.json');
     test.assert(existsSync(historyPath), 'scan-history.json should exist after analysis');
   });
 

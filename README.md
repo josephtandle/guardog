@@ -1,92 +1,69 @@
 # Guardog
 
-Guardog is a package security scanner for npm and PyPI. It checks packages for known CVEs, reputation signals, suspicious metadata, malicious code patterns, optional VirusTotal results, and cached threat-intelligence findings before you install or commit dependency changes.
+Guardog checks packages before you trust them.
 
-It runs locally and does not use OpenAI, YOLO, MyOS, Dispatch, Typeless, or any other AI/token service. Network lookups go to public package and security APIs such as npm, PyPI, OSV, GitHub Advisories, NVD, CISA KEV, and optional VirusTotal.
+It looks for known vulnerabilities, weak reputation signals, suspicious metadata, risky code patterns, and optional VirusTotal findings. It works with npm and PyPI. It does not use AI tokens.
 
-## Install From GitHub
+## The easy install
 
 Requires Node.js 18 or newer.
 
 ```bash
 npm install -g github:josephtandle/guardog
-guardog setup
+guardog setup --quick
+guardog doctor
+guardog analyze lodash npm
 ```
 
-The setup wizard creates a user-writable state folder at `~/.guardog` on macOS/Linux and `%USERPROFILE%\.guardog` on Windows. It asks:
+That is the safe path. Quick setup creates a local state folder. It does not install or change a background job. It does not change your global git hooks. It does not intercept normal `npm install` or `pip install` commands, and it does not send messages anywhere. Use `guardog install` when you want the pre-install scan.
 
-1. Run Guardog every night at midnight?
-2. Use Guardog before dependency installs?
-3. Install a git pre-commit dependency hook?
-4. Add a VirusTotal API key?
+Guardog stores its local state in `~/.guardog` on macOS and Linux, or `%USERPROFILE%\.guardog` on Windows.
 
-Nightly scans and global hooks are off unless you opt in.
+## What works immediately
 
-## Usage
+OSV scanning is ready as soon as Guardog is installed. It uses the public OSV.dev API and needs no account or API key. OSV currently documents no API rate limit.
 
 ```bash
 guardog analyze lodash npm
 guardog analyze requests pypi
-guardog batch ./packages.json
-guardog doctor
 ```
 
-For guarded npm installs, use Guardog as the pre-install wrapper:
+Craig Soles' OSV-Scan guide inspired the simpler npm and pip install flow in version 1.2.0. Guardog keeps the useful part, a direct OSV check, while running it before the package manager instead of after.
 
 ```bash
-guardog install left-pad
-guardog install
+guardog install npm install lodash@4.17.21
+guardog install pip install requests==2.31.0
 ```
 
-`guardog install <package>` scans the requested package first. If Guardog returns `BARK`, it blocks the install. Otherwise it runs `npm install` with the same arguments.
-
-## Nightly Scans
-
-Nightly scans are disabled by default. Enable or disable them explicitly:
+The original npm shorthand still works:
 
 ```bash
-guardog updates enable
-guardog updates status
-guardog updates disable
+guardog install express
 ```
 
-By default, nightly scans search for `package.json` files under your home folder. To limit the scan:
+Guardog scans the named packages first. A `BARK` verdict blocks the guarded install. `SILENT` and `WHINE` continue to the package manager, with the warning printed for review.
 
-```bash
-GUARDOG_WORKSPACE=~/projects guardog nightly
-```
-
-On macOS/Linux, `guardog updates enable` installs a cron entry. On Windows, it installs a Task Scheduler entry named `GuardogNightlyScan`.
-
-## Install Hooks
-
-Guardog cannot universally intercept every installer on every operating system. The supported cross-platform install-time protection is:
-
-```bash
-guardog install <npm-package>
-```
-
-For git workflows, you can opt into a dependency scan before commits:
-
-```bash
-guardog hooks enable
-```
-
-On Windows, global git hook installation is skipped by default because shell hooks require Git Bash/compatible shell behavior. Use `guardog install` for the portable path.
+Guardog fails closed when it cannot identify package names, including pip requirement files, URLs, and local paths. Scan those dependency files separately before installing them.
 
 ## VirusTotal
 
-VirusTotal is optional. When configured with an API key, Guardog automatically derives the SHA-256 target hash from package metadata and runs VirusTotal scans. Without an API key, Guardog still runs reputation checks, CVE lookups, pattern checks, and threat-intel cache checks.
+VirusTotal is optional. When configured with an API key, Guardog automatically derives the SHA-256 target hash from package metadata and runs VirusTotal scans. VirusTotal also stays available as an optional second opinion for a URL or file hash. Without an API key, Guardog still runs OSV lookups, reputation checks, pattern checks, and threat-intel cache checks.
 
-The free tier is usually enough for light use: 4 requests/minute and 500/day.
-
-Add or update the key with:
+Run the guided setup when you want to add a key:
 
 ```bash
 guardog setup
 ```
 
-The key is saved in the user state folder, not inside the installed package.
+You can get a personal API key from your VirusTotal Community account settings. Guardog saves it to your local Guardog state folder with owner-only file permissions. Keep the key private. If a key is pasted into a chat, terminal transcript, or public issue, rotate it before using it again.
+
+VirusTotal's public API has usage restrictions, including restrictions on commercial products and services. Check the [official VirusTotal API terms and getting-started guide](https://docs.virustotal.com/reference/intro/getting-started) before using it in a business workflow.
+
+To include VirusTotal in a scan, provide a URL or hash after the package and ecosystem:
+
+```bash
+guardog analyze example-package npm https://example.com/package.tgz
+```
 
 ## GitHub API Configuration
 
@@ -102,19 +79,38 @@ Without `GITHUB_API_TOKEN`, the unauthenticated GitHub API allows only 60 reques
 | WHINE: NOT_FOUND | Package does not exist in registry: verify spelling for typosquats |
 | BARK: DANGER | Dangerous: do not install |
 
-## What It Checks
+## What Guardog checks
 
-1. CVE databases through OSV and related feeds
+1. Known advisories through [OSV.dev](https://google.github.io/osv.dev/api/)
 2. Package reputation from npm, PyPI, RubyGems, and GitHub metadata
-3. Code pattern analysis for risky package metadata/code snippets
-4. Automatic VirusTotal scans when configured with an API key
-5. Optional cached threat-intelligence findings
+3. Code pattern analysis for risky package metadata and code snippets
+4. Automatic VirusTotal scans when configured with an API key (or explicit URL/hash target)
+5. Cached threat-intelligence findings when available
 
-## Cross-Platform Notes
+## Optional automation
 
-The default CLI path is Node-based and works on macOS, Windows, and Linux. Legacy Bash scripts remain for existing users, but the recommended install and setup flow is `npm install -g github:josephtandle/guardog` followed by `guardog setup`.
+Nothing runs in the background by default. If you want more protection, the full setup can configure it explicitly:
 
-Runtime state lives in `~/.guardog` or `%USERPROFILE%\.guardog`, so global installs and package upgrades do not wipe scan history or secrets.
+```bash
+guardog setup
+guardog updates enable
+guardog hooks enable
+```
+
+Nightly scans use cron on macOS and Linux, and Task Scheduler on Windows. Global git hooks are skipped on Windows because the portable path is `guardog install`.
+
+To scan a complete dependency file:
+
+```bash
+guard-dog-scan ./package.json
+guardog batch ./examples/batch-example.json
+```
+
+## Security and privacy
+
+Guardog has no external notification integration. Runtime history and secrets stay in the local Guardog state folder. Do not include keys, tokens, `.env` files, or unredacted scan logs in bug reports.
+
+Report vulnerabilities privately through [GitHub Security Advisories](https://github.com/josephtandle/guardog/security/advisories/new).
 
 ## License
 

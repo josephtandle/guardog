@@ -15,9 +15,8 @@ requests a private security contact without including exploit details.
 
 ## Supported Versions
 
-GuardDog is currently pre-1.1 public release software. Security fixes are
-expected on the default branch first, then released from the latest tagged
-version.
+Guardog 1.2.x is the supported public release line. Security fixes land on the
+default branch first, then ship from the latest tagged version.
 
 ## Handling Secrets
 

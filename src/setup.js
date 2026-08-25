@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { chmodSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { spawnSync } from 'child_process';
 import os from 'os';
@@ -16,7 +16,6 @@ import {
 const DEFAULT_CONFIG = {
   nightlyUpdates: false,
   nightlyTime: '00:00',
-  guardedInstalls: true,
   gitPreCommitHook: false,
   virustotalConfigured: false
 };
@@ -32,19 +31,61 @@ function readJson(path, fallback) {
 }
 
 export function loadUserConfig() {
-  return {
+  const config = {
     ...DEFAULT_CONFIG,
     ...readJson(guardogConfigPath(), {})
   };
+  delete config.guardedInstalls;
+  return config;
 }
 
 export function saveUserConfig(config) {
   ensureGuardogHome();
-  writeFileSync(guardogConfigPath(), JSON.stringify({ ...DEFAULT_CONFIG, ...config }, null, 2));
+  const nextConfig = { ...DEFAULT_CONFIG, ...config };
+  delete nextConfig.guardedInstalls;
+  writeFileSync(guardogConfigPath(), JSON.stringify(nextConfig, null, 2));
 }
 
 function yes(answer) {
   return /^(y|yes)$/i.test(answer.trim());
+}
+
+function hasVirusTotalKey() {
+  if (!existsSync(guardogEnvPath())) return false;
+  return /^VIRUSTOTAL_API_KEY=.+$/m.test(readFileSync(guardogEnvPath(), 'utf-8'));
+}
+
+export function saveVirusTotalKey(apiKey) {
+  const value = apiKey.trim();
+  if (!value) return false;
+
+  ensureGuardogHome();
+  const envPath = guardogEnvPath();
+  const existing = existsSync(envPath) ? readFileSync(envPath, 'utf-8') : '';
+  const lines = existing
+    .split(/\r?\n/)
+    .filter(line => line && !line.startsWith('VIRUSTOTAL_API_KEY='));
+  lines.push(`VIRUSTOTAL_API_KEY=${value}`);
+  writeFileSync(envPath, `${lines.join(os.EOL)}${os.EOL}`, { mode: 0o600 });
+  chmodSync(envPath, 0o600);
+  return true;
+}
+
+export function runQuickSetup() {
+  ensureGuardogHome();
+  const config = {
+    ...loadUserConfig(),
+    virustotalConfigured: hasVirusTotalKey()
+  };
+  saveUserConfig(config);
+
+  console.log('\nGuardog quick setup complete.');
+  console.log('OSV scanning is ready now. It is free and needs no API key.');
+  console.log('No background job or global git hook was installed or changed.');
+  console.log('VirusTotal is optional. Run `guardog setup` whenever you want to add a key.');
+  console.log('Use `guardog install` when you want Guardog to scan before npm or pip runs.');
+  console.log('Try it: `guardog analyze lodash npm`');
+  return config;
 }
 
 export function installGitHook() {
@@ -164,49 +205,38 @@ export async function runSetup() {
 
   console.log('\nGuardog setup');
   console.log(`State folder: ${guardogHome()}`);
-  console.log('Guardog uses local checks plus public package/security APIs. No OpenAI or LLM token usage is required.');
-  console.log('Nightly feed updates and install protections are opt-in/explicit so nothing silently changes your machine.\n');
-
-  const nightly = await rl.question('Run Guardog every night at midnight? [y/N] ');
-  config.nightlyUpdates = yes(nightly);
-  if (config.nightlyUpdates) {
-    const result = installNightlySchedule();
-    console.log(result.ok ? `OK: ${result.message}` : `Skipped: ${result.message}`);
-  } else {
-    const result = removeNightlySchedule();
-    console.log(result.ok ? `OK: ${result.message}` : `Skipped: ${result.message}`);
-  }
-
-  const guarded = await rl.question('Use Guardog before dependency installs? [Y/n] ');
-  config.guardedInstalls = guarded.trim() === '' || yes(guarded);
-  if (config.guardedInstalls) {
-    console.log('Use `guardog install <npm-package>` instead of `npm install <npm-package>` for a pre-install scan.');
-  }
-
-  const hook = await rl.question('Install global git pre-commit dependency scan hook? [y/N] ');
-  config.gitPreCommitHook = yes(hook);
-  if (config.gitPreCommitHook) {
-    const result = installGitHook();
-    console.log(result.ok ? `OK: ${result.message}` : `Skipped: ${result.message}`);
-  } else {
-    const result = removeGitHook();
-    console.log(result.ok ? `OK: ${result.message}` : `Skipped: ${result.message}`);
-  }
+  console.log('Guardog checks public package and security databases. It does not use AI tokens.');
+  console.log('OSV works immediately with no account or key. Nothing runs in the background unless you opt in.\n');
 
   const vtKey = await rl.question('VirusTotal API key (press Enter to skip): ');
   if (vtKey.trim()) {
-    writeFileSync(guardogEnvPath(), `VIRUSTOTAL_API_KEY=${vtKey.trim()}${os.EOL}`);
-    config.virustotalConfigured = true;
+    config.virustotalConfigured = saveVirusTotalKey(vtKey);
     console.log(`Saved VirusTotal key to ${guardogEnvPath()}`);
-  } else if (!existsSync(guardogEnvPath())) {
-    writeFileSync(guardogEnvPath(), '');
+  } else {
+    config.virustotalConfigured = hasVirusTotalKey();
+    console.log('VirusTotal skipped. OSV and the other checks still work.');
+  }
+
+  const advanced = await rl.question('Set up optional nightly scans or a global git hook? [y/N] ');
+  if (yes(advanced)) {
+    const nightly = await rl.question('Run Guardog every night at midnight? [y/N] ');
+    config.nightlyUpdates = yes(nightly);
+    const nightlyResult = config.nightlyUpdates ? installNightlySchedule() : removeNightlySchedule();
+    console.log(nightlyResult.ok ? `OK: ${nightlyResult.message}` : `Skipped: ${nightlyResult.message}`);
+
+    const hook = await rl.question('Install a global git pre-commit dependency scan hook? [y/N] ');
+    config.gitPreCommitHook = yes(hook);
+    const hookResult = config.gitPreCommitHook ? installGitHook() : removeGitHook();
+    console.log(hookResult.ok ? `OK: ${hookResult.message}` : `Skipped: ${hookResult.message}`);
+  } else {
+    console.log('No background job or global git hook changes were made.');
   }
 
   saveUserConfig(config);
   rl.close();
 
   console.log('\nGuardog setup complete.');
-  console.log('This feature is turned off by default, but you can turn on nightly updates with `guardog updates enable`.');
+  console.log('Try it: `guardog analyze lodash npm`');
 }
 
 export function printDoctor() {
@@ -216,11 +246,13 @@ export function printDoctor() {
     ['Platform', `${process.platform} ${process.arch}`],
     ['State folder', guardogHome()],
     ['Config', existsSync(guardogConfigPath()) ? guardogConfigPath() : 'missing'],
-    ['VirusTotal', existsSync(guardogEnvPath()) && readFileSync(guardogEnvPath(), 'utf-8').includes('VIRUSTOTAL_API_KEY=') ? 'configured' : 'optional/not configured']
+    ['OSV', 'ready (no key required)'],
+    ['VirusTotal', hasVirusTotalKey() ? 'configured' : 'optional/not configured'],
+    ['External notifications', 'none']
   ];
   console.log('\nGuardog doctor');
   for (const [label, value] of checks) {
     console.log(`${label}: ${value}`);
   }
-  console.log('\nInstall checks: use `guardog install <package>` for guarded npm installs.');
+  console.log('\nInstall checks: use `guardog install <package>` for npm or `guardog install pip <package>` for PyPI.');
 }

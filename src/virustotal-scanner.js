@@ -3,8 +3,6 @@
  * Scans packages for malicious code using VirusTotal API v3
  */
 
-import fetch from 'node-fetch';
-
 export class VirusTotalScanner {
   constructor(config) {
     this.apiKey = config.virustotal.apiKey || process.env.VIRUSTOTAL_API_KEY;
