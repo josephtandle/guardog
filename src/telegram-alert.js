@@ -5,8 +5,6 @@
 
 import fetch from 'node-fetch';
 import { createRequire } from 'module';
-const _require = createRequire(import.meta.url);
-const { sendMessage: _sharedSendMessage } = _require('../../shared/telegram-send.js');
 
 export class TelegramAlert {
   constructor(config) {
@@ -36,11 +34,26 @@ export class TelegramAlert {
       return false;
     }
 
+    let sharedSendMessage;
+    try {
+      const _require = createRequire(import.meta.url);
+      const sharedMod = _require('../../shared/telegram-send.js');
+      sharedSendMessage = sharedMod?.sendMessage;
+    } catch (err) {
+      console.warn(`⚠️ Telegram shared module unavailable: ${err.message}`);
+      return false;
+    }
+
+    if (!sharedSendMessage) {
+      console.warn('⚠️ Telegram shared sendMessage function unavailable');
+      return false;
+    }
+
     const message = this.formatAlertMessage(packageName, decision);
 
     try {
       const apiBase = `https://api.telegram.org/bot${this.botToken}`;
-      await _sharedSendMessage(apiBase, this.chatId, message, {
+      await sharedSendMessage(apiBase, this.chatId, message, {
         agentId: 'guard-dog',
         messageType: 'alert',
         extraPayload: { disable_web_page_preview: true },

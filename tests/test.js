@@ -402,7 +402,7 @@ async function runTests() {
   await test.run('Autonomizer contract and version tracking', async () => {
     const contract = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../autonomizer.json'), 'utf-8'));
     test.assert(contract.agentId === 'guard-dog', 'Contract agentId should match guard-dog');
-    test.assert(contract.version === '1.1.0', 'Guard Dog contract version should be tracked');
+    test.assert(contract.version === '2.0.0', 'Guard Dog contract version should be tracked');
     test.assert(contract.reflectionQuestions.length === 5, 'Guard Dog should have a five-question self-improving loop');
     test.assert(
       contract.reflectionQuestions.some((q) => /how could this get even better\?/i.test(q.prompt)),
@@ -427,7 +427,7 @@ async function runTests() {
     test.assert(typeof contract.lastAutonomizerUpdate === 'string' && !Number.isNaN(Date.parse(contract.lastAutonomizerUpdate)), 'Guard Dog contract should track the last Autonomizer update time');
 
     const packageJson = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../package.json'), 'utf-8'));
-    test.assert(packageJson.version === '1.1.0', 'Guard Dog package version should be bumped');
+    test.assert(packageJson.version === '2.0.0', 'Guard Dog package version should be bumped');
   });
 
   // Summary

@@ -101,7 +101,10 @@ export class ReputationChecker {
         maintainers: data.maintainers?.length || 0,
         repository: this.parseRepository(versionData?.repository || data.repository),
         license: versionData?.license || data.license,
-        deprecated: data.deprecated || versionData?.deprecated
+        deprecated: data.deprecated || versionData?.deprecated,
+        tarball: versionData?.dist?.tarball || null,
+        integrity: versionData?.dist?.integrity || null,
+        shasum: versionData?.dist?.shasum || null
       };
     } finally {
       clearTimeout(timeoutId);
@@ -129,6 +132,9 @@ export class ReputationChecker {
 
       const data = await response.json();
       const info = data.info;
+      const urls = data.urls || [];
+      const tarball = urls[0]?.url || info.package_url || null;
+      const sha256 = urls[0]?.digests?.sha256 || null;
 
       return {
         name: info.name,
@@ -139,7 +145,9 @@ export class ReputationChecker {
         author: info.author,
         repository: this.parseRepository(info.project_urls),
         license: info.license,
-        deprecated: false
+        deprecated: false,
+        tarball,
+        sha256
       };
     } finally {
       clearTimeout(timeoutId);
@@ -190,7 +198,7 @@ export class ReputationChecker {
   /**
    * Check GitHub repository
    * @param {string} repoUrl - GitHub repository URL
-   * @returns {Promise<Object>} GitHub metadata
+   * @returns {Promise<Object>} GitHub metadata or error status
    */
   async checkGitHub(repoUrl) {
     if (!repoUrl) return null;
@@ -206,9 +214,9 @@ export class ReputationChecker {
     const timeoutId = setTimeout(() => controller.abort(), this.config.github.timeoutMs);
 
     try {
-      // Use GITHUB_TOKEN if available for higher rate limits (5000/hr vs 60/hr)
+      // Use GITHUB_API_TOKEN or GITHUB_TOKEN if available for higher rate limits (5000/hr vs 60/hr)
       const headers = {};
-      const ghToken = process.env.GITHUB_TOKEN;
+      const ghToken = process.env.GITHUB_API_TOKEN || process.env.GITHUB_TOKEN;
       if (ghToken) {
         headers['Authorization'] = `token ${ghToken}`;
       }
@@ -219,20 +227,41 @@ export class ReputationChecker {
       );
 
       if (!response.ok) {
-        return null;
+        const remaining = response.headers.get('x-ratelimit-remaining');
+        const reset = response.headers.get('x-ratelimit-reset');
+        const isRateLimited = (response.status === 403 || response.status === 429) && remaining === '0';
+        let errorMsg = `HTTP ${response.status}: ${response.statusText || 'Request failed'}`;
+        if (isRateLimited) {
+          errorMsg = `Rate limit exceeded (HTTP ${response.status})`;
+          if (reset) {
+            errorMsg += ` (resets at ${reset})`;
+          }
+        }
+        return {
+          ok: false,
+          error: errorMsg,
+          rateLimited: isRateLimited
+        };
       }
 
       const data = await response.json();
 
       // Check for issues mentioning "malware", "virus", "security"
-      const issuesResponse = await fetch(
-        `${this.config.github.apiUrl}/search/issues?q=repo:${owner}/${repoName}+malware+OR+virus+OR+security+OR+compromised`,
-        { signal: controller.signal, headers }
-      );
-
-      const issuesData = issuesResponse.ok ? await issuesResponse.json() : { total_count: 0 };
+      let issuesData = { total_count: 0 };
+      try {
+        const issuesResponse = await fetch(
+          `${this.config.github.apiUrl}/search/issues?q=repo:${owner}/${repoName}+malware+OR+virus+OR+security+OR+compromised`,
+          { signal: controller.signal, headers }
+        );
+        if (issuesResponse.ok) {
+          issuesData = await issuesResponse.json();
+        }
+      } catch {
+        // Non-critical issue lookup failure
+      }
 
       return {
+        ok: true,
         stars: data.stargazers_count,
         forks: data.forks_count,
         openIssues: data.open_issues_count,
@@ -242,6 +271,12 @@ export class ReputationChecker {
         securityIssues: issuesData.total_count,
         archived: data.archived,
         disabled: data.disabled
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        error: err.message || 'GitHub check failed',
+        rateLimited: false
       };
     } finally {
       clearTimeout(timeoutId);
@@ -307,17 +342,21 @@ export class ReputationChecker {
 
     // GitHub signals
     if (github) {
-      if (github.stars < 50) {
-        signals.push('LOW_STARS');
-      }
-      if (github.securityIssues > 0) {
-        signals.push('SECURITY_COMPLAINTS');
-      }
-      if (github.archived) {
-        signals.push('ARCHIVED_REPO');
-      }
-      if (github.disabled) {
-        signals.push('DISABLED_REPO');
+      if (github.ok === false) {
+        signals.push('GITHUB_CHECK_FAILED');
+      } else {
+        if (github.stars < 50) {
+          signals.push('LOW_STARS');
+        }
+        if (github.securityIssues > 0) {
+          signals.push('SECURITY_COMPLAINTS');
+        }
+        if (github.archived) {
+          signals.push('ARCHIVED_REPO');
+        }
+        if (github.disabled) {
+          signals.push('DISABLED_REPO');
+        }
       }
     }
 

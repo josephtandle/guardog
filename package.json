@@ -1,6 +1,6 @@
 {
   "name": "guard-dog",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Security agent for scanning packages and detecting malicious code",
   "main": "src/index.js",
   "type": "module",
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "node tests/test.js && node --test tests/autonomizer-contract.test.cjs",
+    "test": "node tests/test.js && node --test tests/autonomizer-contract.test.cjs && node --test tests/audit-findings.test.cjs",
     "scan": "node bin/scan-deps.js",
     "setup": "node src/index.js setup",
     "cron": "node bin/nightly-scan.js"

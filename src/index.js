@@ -8,6 +8,8 @@ import { readFileSync, writeFileSync, existsSync, realpathSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { spawnSync } from 'child_process';
+import { createHash } from 'node:crypto';
+import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 
 import { VirusTotalScanner } from './virustotal-scanner.js';
@@ -31,6 +33,47 @@ import {
 // Load environment variables
 dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env') });
 dotenv.config({ path: guardogEnvPath(), override: true });
+
+export async function deriveVirusTotalTarget(reputationData, ecosystem) {
+  const registry = reputationData?.registry;
+  if (!registry || !registry.tarball) {
+    return null;
+  }
+
+  if (ecosystem === 'pypi' && registry.sha256) {
+    return registry.sha256;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    const response = await fetch(registry.tarball, { signal: controller.signal });
+    if (!response.ok) {
+      clearTimeout(timeoutId);
+      return null;
+    }
+
+    const hash = createHash('sha256');
+    let totalBytes = 0;
+    const maxBytes = 50 * 1024 * 1024;
+
+    for await (const chunk of response.body) {
+      totalBytes += chunk.length;
+      if (totalBytes > maxBytes) {
+        clearTimeout(timeoutId);
+        controller.abort();
+        return null;
+      }
+      hash.update(chunk);
+    }
+
+    clearTimeout(timeoutId);
+    return hash.digest('hex');
+  } catch {
+    return null;
+  }
+}
 
 export class GuardDog {
   constructor() {
@@ -130,24 +173,36 @@ export class GuardDog {
       console.error('✗ Reputation check failed:', error.message);
     }
 
-    // Step 2: VirusTotal scan (if available and target provided)
-    if (this.scanner && target) {
-      vtAttempted = true;
-      console.log('🔍 Scanning with VirusTotal...');
-      try {
-        scanResults = await this.scanner.scan(target);
-        if (scanResults.success) {
-          console.log(`✓ VirusTotal scan complete (${scanResults.totalEngines} engines)`);
-        } else {
-          console.log('✗ VirusTotal scan failed:', scanResults.error);
+    // Step 2: VirusTotal scan (if available)
+    let vtTarget = target;
+    if (this.scanner) {
+      if (!vtTarget && reputationData?.registry?.tarball) {
+        vtTarget = await deriveVirusTotalTarget(reputationData, ecosystem);
+        if (!vtTarget) {
+          console.log('⚠️  VirusTotal scan skipped (could not derive package hash)');
         }
-      } catch (error) {
-        console.error('✗ VirusTotal scan failed:', error.message);
       }
-    } else if (!this.scanner) {
-      console.log('⚠️  VirusTotal scan skipped (no API key)');
+
+      if (vtTarget) {
+        vtAttempted = true;
+        console.log('🔍 Scanning with VirusTotal...');
+        try {
+          scanResults = await this.scanner.scan(vtTarget);
+          if (scanResults.success && scanResults.found) {
+            console.log(`✓ VirusTotal scan complete (${scanResults.totalEngines} engines)`);
+          } else if (scanResults.success && !scanResults.found) {
+            console.log('⚠️  VirusTotal has no record of this file (not a clean result)');
+          } else {
+            console.log(`✗ VirusTotal scan failed: ${scanResults.error || 'Unknown error'}`);
+          }
+        } catch (error) {
+          console.error(`✗ VirusTotal scan failed: ${error.message}`);
+        }
+      } else if (!target && !reputationData?.registry?.tarball) {
+        console.log('⚠️  VirusTotal scan skipped (no target URL/hash)');
+      }
     } else {
-      console.log('⚠️  VirusTotal scan skipped (no target URL/hash)');
+      console.log('⚠️  VirusTotal scan skipped (no API key)');
     }
 
     // Step 3: CVE check
@@ -388,6 +443,10 @@ async function guardedInstall(args) {
     const pkgPath = resolve(process.cwd(), 'package.json');
     if (existsSync(pkgPath)) {
       const scan = spawnSync(process.execPath, [join(packageRoot(), 'bin', 'scan-deps.js'), pkgPath], { stdio: 'inherit' });
+      if (scan.error) {
+        console.error(`\nGuardog could not run dependency scan: ${scan.error.message}`);
+        process.exit(1);
+      }
       if (scan.status !== 0) {
         console.error('\nGuardog blocked install because dependency scan failed.');
         process.exit(scan.status || 1);
@@ -399,7 +458,15 @@ async function guardedInstall(args) {
 
   const npmArgs = args.length > 0 && ['install', 'i', 'add'].includes(args[0]) ? args : ['install', ...args];
   const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  const result = spawnSync(npmCmd, npmArgs, { stdio: 'inherit', shell: false });
+  const isWin = process.platform === 'win32';
+  const result = isWin
+    ? spawnSync(npmCmd, npmArgs.map(a => `"${a}"`), { stdio: 'inherit', shell: true })
+    : spawnSync(npmCmd, npmArgs, { stdio: 'inherit', shell: false });
+
+  if (result.error) {
+    console.error(`\nGuardog could not run npm: ${result.error.message}`);
+    process.exit(1);
+  }
   process.exit(result.status ?? 1);
 }
 
@@ -455,6 +522,10 @@ async function main(argv = process.argv.slice(2)) {
     await guardedInstall(args.slice(1));
   } else if (command === 'nightly') {
     const result = spawnSync(process.execPath, [join(packageRoot(), 'bin', 'nightly-scan.js')], { stdio: 'inherit' });
+    if (result.error) {
+      console.error(`\nGuardog could not run nightly scan: ${result.error.message}`);
+      process.exit(1);
+    }
     process.exit(result.status ?? 1);
   } else if (command === 'test') {
     // Run system test

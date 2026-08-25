@@ -76,7 +76,7 @@ On Windows, global git hook installation is skipped by default because shell hoo
 
 ## VirusTotal
 
-VirusTotal is optional. Without it, Guardog still runs reputation checks, CVE lookups, pattern checks, and threat-intel cache checks.
+VirusTotal is optional. When configured with an API key, Guardog automatically derives the SHA-256 target hash from package metadata and runs VirusTotal scans. Without an API key, Guardog still runs reputation checks, CVE lookups, pattern checks, and threat-intel cache checks.
 
 The free tier is usually enough for light use: 4 requests/minute and 500/day.
 
@@ -88,20 +88,26 @@ guardog setup
 
 The key is saved in the user state folder, not inside the installed package.
 
+## GitHub API Configuration
+
+Without `GITHUB_API_TOKEN`, the unauthenticated GitHub API allows only 60 requests per hour. When rate limits or network errors occur, Guarddog reports 'GitHub could not be checked' rather than treating the missing data as clean. Setting `GITHUB_API_TOKEN` raises the limit to 5000 requests per hour. Setting `GITHUB_API_TOKEN` in your environment or `.env` file is recommended.
+
 ## Verdicts
 
 | Verdict | Meaning |
 |---------|---------|
-| SILENT | Safe to install |
-| WHINE | Suspicious; review before installing |
-| BARK | Dangerous; do not install |
+| SILENT: SAFE | Safe to install (clean result, no findings) |
+| SILENT: UNCONFIRMED | Signals found below warning threshold: review reasons before installing |
+| WHINE: SUSPICIOUS | Suspicious: review before installing |
+| WHINE: NOT_FOUND | Package does not exist in registry: verify spelling for typosquats |
+| BARK: DANGER | Dangerous: do not install |
 
 ## What It Checks
 
 1. CVE databases through OSV and related feeds
 2. Package reputation from npm, PyPI, RubyGems, and GitHub metadata
 3. Code pattern analysis for risky package metadata/code snippets
-4. Optional VirusTotal scans when an API key and target are provided
+4. Automatic VirusTotal scans when configured with an API key
 5. Optional cached threat-intelligence findings
 
 ## Cross-Platform Notes

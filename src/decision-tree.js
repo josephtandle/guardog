@@ -24,15 +24,22 @@ export class DecisionTree {
       threat: 'SAFE',
       confidence: 100,
       reasons: [],
+      notes: [],
       details: {
         scan: scanResults,
         reputation: reputationData
       }
     };
 
-    // Check if trusted provider (skip further checks)
-    if (this.isTrustedProvider(packageName)) {
-      decision.reasons.push('Trusted provider - scanning skipped');
+    const isTrusted = this.isTrustedProvider(packageName);
+
+    if (isTrusted) {
+      decision.notes.push('Trusted provider - reputation heuristics skipped');
+    } else if (reputationData?.signals?.includes('PACKAGE_NOT_FOUND')) {
+      decision.action = 'WHINE';
+      decision.threat = 'NOT_FOUND';
+      decision.confidence = 100;
+      decision.reasons.push('❌ Package does not exist in the registry - nothing could be checked. Verify the spelling (possible typosquat).');
       return decision;
     }
 
@@ -40,7 +47,7 @@ export class DecisionTree {
     const vtScore = this.evaluateVirusTotal(scanResults, decision.reasons, vtAttempted);
     
     // Evaluate reputation signals
-    const repScore = this.evaluateReputation(reputationData, decision.reasons);
+    const repScore = isTrusted ? 0 : this.evaluateReputation(reputationData, decision.reasons);
 
     // Evaluate CVE results
     const cveScore = this.evaluateCVEs(cveResults, decision.reasons);
@@ -62,7 +69,7 @@ export class DecisionTree {
       decision.confidence = totalScore;
     } else {
       decision.action = 'SILENT';
-      decision.threat = 'SAFE';
+      decision.threat = decision.reasons.length > 0 ? 'UNCONFIRMED' : 'SAFE';
       decision.confidence = 100 - totalScore;
     }
 
@@ -172,7 +179,7 @@ export class DecisionTree {
     }
 
     if (signals.includes('SECURITY_COMPLAINTS')) {
-      score += 40;
+      score += 50;
       reasons.push('🚨 Security issues reported on GitHub');
     }
 
@@ -195,6 +202,11 @@ export class DecisionTree {
     if (signals.includes('NO_REPOSITORY')) {
       score += 25;
       reasons.push('❓ No source repository linked');
+    }
+
+    if (signals.includes('GITHUB_CHECK_FAILED')) {
+      score += 25;
+      reasons.push('❓ GitHub could not be checked - security complaints and repo status are UNKNOWN, not clear');
     }
 
     if (signals.includes('ARCHIVED_REPO')) {
@@ -310,13 +322,28 @@ export class DecisionTree {
       SILENT: '✅'
     };
 
-    let output = `${emoji[decision.action]} ${decision.action}: ${decision.threat}\n`;
+    const icon = decision.threat === 'UNCONFIRMED' ? 'ℹ️' : (emoji[decision.action] || '❓');
+
+    let output = `${icon} ${decision.action}: ${decision.threat}\n`;
     output += `Confidence: ${decision.confidence}%\n\n`;
 
-    if (decision.reasons.length > 0) {
+    if (decision.reasons && decision.reasons.length > 0) {
       output += 'Reasons:\n';
       decision.reasons.forEach(reason => {
         output += `  • ${reason}\n`;
+      });
+      if (decision.threat === 'UNCONFIRMED') {
+        output += 'Not a clean result - the signals above scored below the warning threshold.\n';
+      }
+    }
+
+    if (decision.notes && decision.notes.length > 0) {
+      if (decision.reasons && decision.reasons.length > 0) {
+        output += '\n';
+      }
+      output += 'Notes:\n';
+      decision.notes.forEach(note => {
+        output += `  • ${note}\n`;
       });
     }
 

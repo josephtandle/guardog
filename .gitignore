@@ -43,3 +43,6 @@ bin/setup-logging-structure.sh
 bin/mission-control-trigger.js
 bin/sync-vulns-to-db.js
 bin/threat-intel-daily.js
+
+# Local static-analysis artifacts (contain absolute machine paths)
+.understand-anything/
