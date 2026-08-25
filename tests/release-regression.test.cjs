@@ -18,6 +18,9 @@ function run(command, args, options = {}) {
 }
 
 test("packed Guardog starts without workspace-only helpers", () => {
+  const sourceVersion = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, "package.json"), "utf8")
+  ).version;
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "guardog-packed-"));
 
   try {
@@ -74,7 +77,8 @@ test("packed Guardog starts without workspace-only helpers", () => {
       { cwd: tempDir, env: isolatedEnvironment }
     );
     assert.equal(version.status, 0, version.stderr || version.stdout);
-    assert.equal(version.stdout.trim(), "1.2.0");
+    // The invariant is that the packed CLI reports the source version
+    assert.equal(version.stdout.trim(), sourceVersion);
 
     const packageManagerMarker = path.join(tempDir, "package-manager-ran");
     const fakeBin = path.join(tempDir, "fake-bin");
