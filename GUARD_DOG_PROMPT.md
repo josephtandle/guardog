@@ -1,4 +1,4 @@
-# Install Guard Dog 3.0.0
+# Install Guard Dog 3.0.1
 
 Copy the prompt below into your AI assistant. It needs access to your computer's terminal.
 
@@ -10,7 +10,7 @@ Use this exact project: https://github.com/josephtandle/guardog. Guard Dog is th
 
 1. Detect my operating system, shell, Node version, existing installation, and project folder. Read the release instructions. Guard Dog requires Node 22 or newer; prefer Node 24 LTS for a new installation. Preserve settings and credentials. Explain decisions in plain English.
 
-2. For the standalone release, install the official pinned tag with `npm install -g --ignore-scripts github:josephtandle/guardog#v3.0.0`. For All Sorted, use its matching module installer instead of creating a duplicate installation. Verify the executable location and `guardog --version`. If permissions or PATH fail, diagnose the actual error, use a user-owned install directory, and retry at most twice. Do not run arbitrary downloaded repair scripts or use administrator privileges automatically.
+2. For the standalone release, install the official pinned tag with `npm install -g --ignore-scripts github:josephtandle/guardog#v3.0.1`. For All Sorted, use its matching module installer instead of creating a duplicate installation. Verify the executable location and `guardog --version`. If permissions or PATH fail, diagnose the actual error, use a user-owned install directory, and retry at most twice. Do not run arbitrary downloaded repair scripts or use administrator privileges automatically.
 
 3. Run `guardog setup --quick`, then help me configure VirusTotal locally using `guardog setup`. Never ask for an API key in chat, print it, or include it in a report. Without a key, vulnerability audits still run, but malware coverage is incomplete and guarded installation stays blocked. A stored key is not proof it works: run `guardog test` and report the actual authentication and service results.
 

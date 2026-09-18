@@ -5,7 +5,7 @@ Use [the installation prompt](GUARD_DOG_PROMPT.md) to have your assistant comple
 With Node 22 or newer installed:
 
 ```sh
-npm install -g --ignore-scripts github:josephtandle/guardog#v3.0.0
+npm install -g --ignore-scripts github:josephtandle/guardog#v3.0.1
 guardog setup
 guardog test
 guardog scan "/your/project"

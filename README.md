@@ -13,7 +13,7 @@ Use the [installation prompt](GUARD_DOG_PROMPT.md). It guides your assistant thr
 For a terminal installation on macOS, Windows, or Linux, use Node 22 or newer (Node 24 LTS preferred):
 
 ```sh
-npm install -g --ignore-scripts github:josephtandle/guardog#v3.0.0
+npm install -g --ignore-scripts github:josephtandle/guardog#v3.0.1
 guardog setup
 guardog test
 guardog scan "/your/project"

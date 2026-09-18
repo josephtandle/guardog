@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.1
+
+- Mark local and workspace-linked npm dependencies as incomplete audit coverage instead of treating them as verified registry packages.
+- Build the approved dependency tree in project-local staging and promote it only after a successful `npm ci`, preserving the live manifest, lockfile and dependency tree when staging fails.
+
 ## 3.0.0
 
 - Audit exact installed and locked npm versions, including transitive dependencies.

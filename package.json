@@ -1,6 +1,6 @@
 {
   "name": "guard-dog",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Security agent for scanning packages and detecting malicious code",
   "main": "src/index.js",
   "type": "module",

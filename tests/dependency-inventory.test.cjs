@@ -58,13 +58,14 @@ test('outside project lock paths cannot supply versions', async () => {
     assert.equal(result.packages.length, 0);
   });
 });
-test('workspace links do not become registry packages; transitive entries still scan', async () => {
+test('workspace links make coverage incomplete while transitive registry entries still scan', async () => {
   await fixture({ 'package.json': { dependencies: { local: 'workspace:*' } }, 'package-lock.json': { lockfileVersion: 3, packages: {
     'node_modules/local': { link: true, resolved: 'packages/local' },
     'packages/local': { name: 'local', version: '1.0.0' },
     'packages/local/node_modules/@scope/leaf': { version: '2.0.0' }
   } } }, result => {
-    assert.equal(result.complete, true);
+    assert.equal(result.complete, false);
+    assert.match(result.issues.join('\n'), /Linked or local dependency cannot be audited as a registry package: node_modules\/local/);
     assert.deepEqual(result.packages.map(p => p.name), ['@scope/leaf']);
   });
 });

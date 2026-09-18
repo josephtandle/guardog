@@ -1,6 +1,5 @@
-import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, lstatSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, lstatSync, renameSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 
@@ -82,7 +81,9 @@ export async function runGuardedInstall(args, GuardDogClass, options = {}) {
     for (const [name, version] of Object.entries(manifest[field] || {})) validateSpec(`${name}@${version}`);
   }
   const npm = npmCommand(options.platform || process.platform, runner);
-  const staging = mkdtempSync(join(tmpdir(), 'guardog-resolve-'));
+  // Keep staging inside the project filesystem so approved files and node_modules
+  // can be promoted with atomic renames after a successful staged npm ci.
+  const staging = mkdtempSync(join(cwd, '.guardog-resolve-'));
   const execute = (argv, directory) => {
     const result = runner(npm.command, [...npm.prefix, ...argv], { cwd: directory, shell: false, stdio: 'inherit' });
     if (result.error || result.status !== 0) throw new Error(`npm ${argv[0]} failed: ${result.error?.message || `exit ${result.status}`}`);
@@ -136,9 +137,40 @@ export async function runGuardedInstall(args, GuardDogClass, options = {}) {
     for (let index = 0; index < paths.length; index++) {
       if (readProjectFile(paths[index]) !== before[index]) throw new Error('Project files changed during security checks. No install performed; retry with a stable project.');
     }
-    writeFileSync(paths[0], approvedManifest);
-    writeFileSync(paths[1], approvedLock);
-    execute(['ci', '--ignore-scripts', '--registry=https://registry.npmjs.org', '--no-audit', '--no-fund'], cwd);
+    // Never run npm ci against the live project. A failed install can remove its
+    // node_modules tree, so prove the exact approved tree in staging first.
+    execute(['ci', '--ignore-scripts', '--registry=https://registry.npmjs.org', '--no-audit', '--no-fund'], staging);
+    const stagedNodeModules = join(staging, 'node_modules');
+    if (!existsSync(stagedNodeModules) || !lstatSync(stagedNodeModules).isDirectory() || lstatSync(stagedNodeModules).isSymbolicLink()) {
+      throw new Error('Staged npm ci did not create an ordinary node_modules directory');
+    }
+    for (let index = 0; index < paths.length; index++) {
+      if (readProjectFile(paths[index]) !== before[index]) throw new Error('Project files changed during security checks. No install performed; retry with a stable project.');
+    }
+    const targets = [
+      { source: join(staging, 'package.json'), target: paths[0], backup: join(staging, 'previous-package.json') },
+      { source: join(staging, 'package-lock.json'), target: paths[1], backup: join(staging, 'previous-package-lock.json') },
+      { source: stagedNodeModules, target: join(cwd, 'node_modules'), backup: join(staging, 'previous-node_modules') }
+    ];
+    const moved = [];
+    try {
+      for (const entry of targets) {
+        if (existsSync(entry.target)) {
+          if (lstatSync(entry.target).isSymbolicLink()) throw new Error(`Refusing to replace symbolic link: ${entry.target}`);
+          renameSync(entry.target, entry.backup);
+          moved.push({ ...entry, hadOriginal: true });
+        } else {
+          moved.push({ ...entry, hadOriginal: false });
+        }
+        renameSync(entry.source, entry.target);
+      }
+    } catch (error) {
+      for (const entry of moved.reverse()) {
+        rmSync(entry.target, { recursive: true, force: true });
+        if (entry.hadOriginal) renameSync(entry.backup, entry.target);
+      }
+      throw error;
+    }
     console.log('Guardog installed the approved locked dependency tree. Lifecycle scripts were not executed; packages requiring build scripts need a separate review.');
     return { installed: true, packagesChecked: seen.size, scriptsExecuted: false };
   } finally {

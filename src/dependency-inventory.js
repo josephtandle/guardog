@@ -42,6 +42,7 @@ export function collectDependencies(manifestPath) {
       lockedLocations.add(location);
       if (entry.link) {
         safePath(entry.resolved || location);
+        issues.push(`Linked or local dependency cannot be audited as a registry package: ${location}`);
         return;
       }
       const metadataPath = `${location}/package.json`;
