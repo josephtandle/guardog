@@ -53,6 +53,7 @@ function yes(answer) {
 }
 
 function hasVirusTotalKey() {
+  if (process.env.VIRUSTOTAL_API_KEY) return true;
   if (!existsSync(guardogEnvPath())) return false;
   return /^VIRUSTOTAL_API_KEY=.+$/m.test(readFileSync(guardogEnvPath(), 'utf-8'));
 }
@@ -82,10 +83,10 @@ export function runQuickSetup() {
   saveUserConfig(config);
 
   console.log('\nGuardog quick setup complete.');
-  console.log('OSV scanning is ready now. It is free and needs no API key.');
+  console.log('OSV needs no API key. Run guardog test to verify connectivity.');
   console.log('No background job or global git hook was installed or changed.');
-  console.log('VirusTotal is optional. Run `guardog setup` whenever you want to add a key.');
-  console.log('Use `guardog install` when you want Guardog to scan before npm or pip runs.');
+  console.log('Add a VirusTotal key with guardog setup for malware coverage and guarded installs.');
+  console.log('Use guardog install for supported npm installs with lifecycle scripts disabled.');
   console.log('Try it: `guardog analyze lodash npm`');
   return config;
 }
@@ -226,7 +227,7 @@ export function printDoctor(options = {}) {
   for (const [label, value] of checks) {
     console.log(`${label}: ${value}`);
   }
-  console.log('\nInstall checks: use `guardog install <package>` for npm or `guardog install pip <package>` for PyPI.');
+  console.log('\nInstall checks: guardog install <package> for supported npm installs. Unsupported installers stay blocked.');
   for (const repair of health.repairs) console.log(`Repaired: ${repair}`);
   for (const issue of health.issues) console.log(`Attention: ${issue}`);
   return health;
