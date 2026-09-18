@@ -5,6 +5,7 @@ import { checkHealth } from './health.js';
 import { spawnSync } from 'child_process';
 import os from 'os';
 import readline from 'readline/promises';
+import { Writable } from 'node:stream';
 import { stdin as input, stdout as output } from 'process';
 
 import {
@@ -26,9 +27,12 @@ const DEFAULT_CONFIG = {
 
 function readJson(path, fallback) {
   try {
-    return JSON.parse(readFileSync(path, 'utf-8'));
-  } catch {
-    return fallback;
+    const value = JSON.parse(readFileSync(path, 'utf-8'));
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Expected a JSON object');
+    return value;
+  } catch (error) {
+    if (error.code === 'ENOENT') return fallback;
+    throw new Error(`Cannot read Guardog config at ${path}. Existing file was preserved: ${error.message}`);
   }
 }
 
@@ -162,18 +166,37 @@ export function removeNightlySchedule(options = {}) {
   return result;
 }
 
-export async function runSetup() {
+export async function readHiddenKey(terminalInput = input, terminalOutput = output) {
+  if (!terminalInput.isTTY || !terminalOutput.isTTY) return null;
+  let muted = false;
+  const hiddenOutput = new Writable({ write(chunk, encoding, callback) {
+    if (!muted) terminalOutput.write(chunk, encoding);
+    callback();
+  } });
+  const secretReader = readline.createInterface({ input: terminalInput, output: hiddenOutput, terminal: true });
+  terminalOutput.write('VirusTotal API key (hidden, press Enter to skip): ');
+  muted = true;
+  try { return await secretReader.question(''); }
+  finally {
+    secretReader.close();
+    terminalInput.pause();
+    terminalOutput.write('\n');
+  }
+}
+
+export async function runSetup(options = {}) {
   ensureGuardogHome();
-  const rl = readline.createInterface({ input, output });
   const config = loadUserConfig();
+  const failures = [];
 
   console.log('\nGuardog setup');
   console.log(`State folder: ${guardogHome()}`);
   console.log('Guardog checks public package and security databases. It does not use AI tokens.');
   console.log('OSV works immediately with no account or key. Nothing runs in the background unless you opt in.\n');
 
-  const vtKey = await rl.question('VirusTotal API key (press Enter to skip): ');
-  if (vtKey.trim()) {
+  const vtKey = await readHiddenKey(options.input || input, options.output || output);
+  if (vtKey === null) console.log(`Non-interactive input: set VIRUSTOTAL_API_KEY locally in your environment or ${guardogEnvPath()}. Do not paste keys into chat.`);
+  if (vtKey?.trim()) {
     config.virustotalConfigured = saveVirusTotalKey(vtKey);
     console.log(`Saved VirusTotal key to ${guardogEnvPath()}`);
   } else {
@@ -181,32 +204,44 @@ export async function runSetup() {
     console.log('VirusTotal skipped. OSV and the other checks still work.');
   }
 
-  const advanced = await rl.question('Set up optional nightly scans or a global git hook? [y/N] ');
+  const rl = options.question ? null : readline.createInterface({ input: options.input || input, output: options.output || output });
+  const question = options.question || (prompt => rl.question(prompt));
+  try {
+  const advanced = await question('Set up optional nightly scans or a global git hook? [y/N] ');
   if (yes(advanced)) {
-    const nightly = await rl.question('Run Guardog every night at midnight? [y/N] ');
+    const nightly = await question('Run Guardog every night at midnight? [y/N] ');
     const enableNightly = yes(nightly);
     if (enableNightly) {
-      const root = await rl.question(`Project folder to scan nightly [${process.cwd()}]: `);
+      const root = await question(`Project folder to scan nightly [${process.cwd()}]: `);
       config.scanRoots = [resolve(root.trim() || process.cwd())];
     }
-    const nightlyResult = enableNightly ? installNightlySchedule(config) : removeNightlySchedule();
+    const nightlyResult = enableNightly ? (options.installSchedule || installNightlySchedule)(config) : (options.removeSchedule || removeNightlySchedule)();
     if (nightlyResult.ok) config.nightlyUpdates = enableNightly;
+    else failures.push(nightlyResult.message);
     console.log(nightlyResult.ok ? `OK: ${nightlyResult.message}` : `Skipped: ${nightlyResult.message}`);
 
-    const hook = await rl.question('Install a global git pre-commit dependency scan hook? [y/N] ');
+    const hook = await question('Install a global git pre-commit dependency scan hook? [y/N] ');
     const enableHook = yes(hook);
-    const hookResult = enableHook ? installGitHook() : removeGitHook();
+    const hookResult = enableHook ? (options.installHook || installGitHook)() : (options.removeHook || removeGitHook)();
     if (hookResult.ok) config.gitPreCommitHook = enableHook;
+    else failures.push(hookResult.message);
     console.log(hookResult.ok ? `OK: ${hookResult.message}` : `Skipped: ${hookResult.message}`);
   } else {
     console.log('No background job or global git hook changes were made.');
   }
 
   saveUserConfig(config);
-  rl.close();
+  } finally { rl?.close(); }
+
+  if (failures.length) {
+    const error = new Error(`Guardog setup incomplete: ${failures.join('; ')}`);
+    error.exitCode = 2;
+    throw error;
+  }
 
   console.log('\nGuardog setup complete.');
   console.log('Try it: `guardog analyze lodash npm`');
+  return { status: 'complete', config };
 }
 
 export function printDoctor(options = {}) {
