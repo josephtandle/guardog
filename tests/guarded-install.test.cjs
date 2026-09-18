@@ -26,7 +26,7 @@ test('resolves and approves transitive artifacts before modifying project or ins
   };
   class Dog { async analyze(...args) { scans.push(args); return {decision:{installAllowed:true}}; } }
   try {
-    await runGuardedInstall(['direct'], Dog, {cwd,runner,fetchArtifact:async()=>bytes});
+    await runGuardedInstall(['direct'], Dog, {cwd,runner,fetchArtifact:async()=>bytes,fetchMetadata:async(name,version)=>({name,version,dist:{tarball:`https://registry.npmjs.org/${name}/-/${name}-${version}.tgz`,integrity}})});
     assert.deepEqual(scans.map(x=>[x[0],x[3]]), [['direct','1.0.0'],['child','2.0.0']]);
     assert.equal(calls.length, 2);
   } finally { fs.rmSync(cwd, {recursive:true,force:true}); }
@@ -60,10 +60,38 @@ test('unapproved transitive dependency, corrupt artifact and concurrent edit sto
       return {decision:scenario === 'unknown' ? {action:'SILENT'} : {installAllowed:scenario !== 'denied'}};
     } }
     try {
-      await assert.rejects(runGuardedInstall(['child'], Dog, {cwd,runner,fetchArtifact:async()=>scenario === 'integrity' ? Buffer.from('wrong') : bytes}));
+      await assert.rejects(runGuardedInstall(['child'], Dog, {cwd,runner,fetchArtifact:async()=>scenario === 'integrity' ? Buffer.from('wrong') : bytes,fetchMetadata:async(name,version)=>({name,version,dist:{tarball:'https://registry.npmjs.org/child/-/child.tgz',integrity}})}));
       assert.equal(executions, 1);
       assert.equal(fs.existsSync(path.join(cwd,'package-lock.json')), false);
       assert.equal(fs.readFileSync(path.join(cwd,'package.json'),'utf8'), original + (scenario === 'changed' ? '\n' : ''));
     } finally { fs.rmSync(cwd,{recursive:true,force:true}); }
+  }
+});
+
+test('rejects lockfile version impersonation before artifact scanning or install', async () => {
+  const { runGuardedInstall } = await import('../src/guarded-install.js');
+  for (const mismatch of ['url','integrity','name','version']) {
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(),'guardog-identity-test-'));
+    const original = JSON.stringify({name:'fixture',version:'1.0.0'});
+    fs.writeFileSync(path.join(cwd,'package.json'), original);
+    const bytes = Buffer.from('old vulnerable release');
+    const integrity = 'sha512-' + crypto.createHash('sha512').update(bytes).digest('base64');
+    let commands = 0, scanned = 0, downloaded = 0;
+    const runner = (command,args,options) => {
+      commands++;
+      fs.writeFileSync(path.join(options.cwd,'package-lock.json'),JSON.stringify({lockfileVersion:3,packages:{'':{},'node_modules/child':{version:'2.0.0',resolved:'https://registry.npmjs.org/child/-/child-1.0.0.tgz',integrity}}}));
+      return {status:0};
+    };
+    class Dog { async analyze() {scanned++; return {decision:{installAllowed:true}};} }
+    const fetchMetadata = async (name,version) => {
+      assert.equal(name,'child'); assert.equal(version,'2.0.0');
+      return {name:mismatch==='name'?'other':name,version:mismatch==='version'?'1.0.0':version,dist:{tarball:`https://registry.npmjs.org/child/-/child-${mismatch==='url'?'2':'1'}.0.0.tgz`,integrity:mismatch==='integrity'?'sha512-different':integrity}};
+    };
+    try {
+      await assert.rejects(runGuardedInstall(['child'],Dog,{cwd,runner,fetchMetadata,fetchArtifact:async()=>{downloaded++; return bytes;}}),/Registry artifact identity mismatch/);
+      assert.equal(commands,1); assert.equal(scanned,0); assert.equal(downloaded,0);
+      assert.equal(fs.readFileSync(path.join(cwd,'package.json'),'utf8'),original);
+      assert.equal(fs.existsSync(path.join(cwd,'package-lock.json')),false);
+    } finally {fs.rmSync(cwd,{recursive:true,force:true});}
   }
 });

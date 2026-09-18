@@ -48,6 +48,13 @@ async function downloadArtifact(url) {
   return Buffer.concat(chunks);
 }
 
+async function fetchRegistryMetadata(name, version) {
+  const url = `https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`;
+  const response = await fetch(url, { signal: AbortSignal.timeout(30000), redirect: 'error' });
+  if (!response.ok) throw new Error(`Exact registry metadata unavailable for ${name}@${version} (${response.status})`);
+  return response.json();
+}
+
 /** Resolve and approve the entire npm tree before changing the target project.
  * Lifecycle scripts remain disabled, including after approval. Pip and non-registry
  * dependencies fail closed because this resolver cannot pin their complete tree.
@@ -56,6 +63,7 @@ export async function runGuardedInstall(args, GuardDogClass, options = {}) {
   const cwd = options.cwd || process.cwd();
   const runner = options.runner || spawnSync;
   const fetchArtifact = options.fetchArtifact || downloadArtifact;
+  const fetchMetadata = options.fetchMetadata || fetchRegistryMetadata;
   const supplied = [...args];
   if (supplied[0] === 'pip' || supplied[0] === 'pip3') {
     throw new Error('Guarded pip installation is not supported: a complete, hash-pinned wheel dependency tree is required. No pip command was run. Use a reviewed hashed requirements lock and audit its exact versions before installing.');
@@ -110,6 +118,13 @@ export async function runGuardedInstall(args, GuardDogClass, options = {}) {
       const integrity = /^(sha512|sha256)-([A-Za-z0-9+/]+={0,2})$/.exec(pkg.integrity || '');
       if (!integrity) throw new Error(`Missing strong artifact integrity for ${name}`);
       const identity = `${name}@${pkg.version}:${pkg.integrity}`;
+      // The lock is input, not authority: a valid digest can describe a different
+      // release. Bind its exact coordinates AND bytes to public registry metadata.
+      const metadata = await fetchMetadata(name, pkg.version);
+      if (metadata?.name !== name || metadata?.version !== pkg.version ||
+          metadata?.dist?.tarball !== pkg.resolved || metadata?.dist?.integrity !== pkg.integrity) {
+        throw new Error(`Registry artifact identity mismatch for ${name}@${pkg.version}`);
+      }
       if (seen.has(identity)) continue;
       const bytes = await fetchArtifact(url.href);
       if (createHash(integrity[1]).update(bytes).digest('base64') !== integrity[2]) throw new Error(`Artifact integrity mismatch for ${name}`);
