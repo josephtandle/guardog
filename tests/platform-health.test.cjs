@@ -128,10 +128,13 @@ test('nightly distinguishes known danger from interrupted or degraded coverage',
   process.env.GUARDOG_HOME = path.join(root, 'state');
   fs.writeFileSync(path.join(root, 'package.json'), '{}');
   try {
-    let receipt = runNightly({ roots: [root], run: () => ({ status: 1, stdout: JSON.stringify({ status: 'dangerous', dependencyCount: 1, dangerousCount: 1, issues: [] }) }) });
+    fs.mkdirSync(process.env.GUARDOG_HOME);
+    fs.writeFileSync(path.join(process.env.GUARDOG_HOME, 'config.json'), JSON.stringify({ nightlyUpdates: false, scanRoots: [root] }));
+    const healthOptions = { platform: 'linux', run: () => ({ status: 0, stdout: '' }) };
+    let receipt = runNightly({ roots: [root], healthOptions, run: () => ({ status: 1, stdout: JSON.stringify({ status: 'dangerous', dependencyCount: 1, dangerousCount: 1, issues: [] }) }) });
     assert.equal(receipt.status, 'dangerous');
     assert.equal(receipt.exitCode, 1);
-    receipt = runNightly({ roots: [root], run: () => ({ status: 2, stdout: JSON.stringify({ status: 'incomplete', dependencyCount: 1, dangerousCount: 1, issues: ['OSV unavailable'] }) }) });
+    receipt = runNightly({ roots: [root], healthOptions, run: () => ({ status: 2, stdout: JSON.stringify({ status: 'incomplete', dependencyCount: 1, dangerousCount: 1, issues: ['OSV unavailable'] }) }) });
     assert.equal(receipt.status, 'incomplete');
     assert.equal(receipt.dangerousCount, 1);
     assert.equal(receipt.exitCode, 2);

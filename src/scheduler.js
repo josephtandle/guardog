@@ -56,8 +56,15 @@ export function inspectSchedule(config = {}, options = {}) {
     const result = run('schtasks.exe', ['/Query', '/TN', TASK, '/XML'], callOptions);
     if (result.status === 0) {
       const text = result.stdout || '';
-      const owned = text.includes(xmlText(spec.runner)) || text.includes(spec.runner);
-      const current = owned && text.includes(`<Command>${xmlText(spec.node)}</Command>`) && text.includes(`T${spec.time}:00`) && !/<Enabled>false<\/Enabled>/.test(text);
+      const decode = value => value.replaceAll('&quot;', '"').replaceAll('&apos;', "'").replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&amp;', '&');
+      const argument = text.match(/<Arguments>\s*([\s\S]*?)\s*<\/Arguments>/)?.[1] || '';
+      const executable = text.match(/<Command>\s*([\s\S]*?)\s*<\/Command>/)?.[1] || '';
+      const owned = decode(argument) === `"${spec.runner}"`;
+      const triggers = text.match(/<Triggers>\s*([\s\S]*?)\s*<\/Triggers>/)?.[1] || '';
+      const calendar = triggers.match(/^<CalendarTrigger(?:\s[^>]*)?>\s*([\s\S]*?)\s*<\/CalendarTrigger>$/)?.[1] || '';
+      const daily = /<ScheduleByDay>\s*<DaysInterval>1<\/DaysInterval>\s*<\/ScheduleByDay>/.test(calendar) && !/<ScheduleBy(?:Week|Month)/.test(calendar);
+      const oneAction = (text.match(/<Exec(?:\s[^>]*)?>/g) || []).length === 1;
+      const current = owned && oneAction && decode(executable) === spec.node && daily && calendar.includes(`T${spec.time}:00`) && !/<Enabled>\s*false\s*<\/Enabled>/.test(text);
       return { state: !owned ? 'conflict' : current ? 'registered' : 'stale', registered: current, detail: !owned ? 'The task name belongs to another command.' : current ? 'Task Scheduler registration found.' : 'Task Scheduler action, time, or enabled state differs from current settings.' };
     }
     const listing = run('schtasks.exe', ['/Query', '/FO', 'CSV', '/NH'], callOptions);

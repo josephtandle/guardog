@@ -1,5 +1,5 @@
 import { chmodSync, existsSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { ensureGuardogHome, guardogConfigPath, guardogEnvPath, guardogHome } from './paths.js';
 import { inspectSchedule, registerSchedule, inspectRunner, repairRunner, scheduleSpec } from './scheduler.js';
 
@@ -64,11 +64,16 @@ export function checkHealth(options = {}) {
   let lastRun = null;
   try { lastRun = JSON.parse(readFileSync(join(guardogHome(), 'data', 'last-nightly.json'), 'utf8')); }
   catch { /* No receipt is reported explicitly below. */ }
-  if (config.nightlyUpdates === true) {
+  // A running scan evaluates its current preflight, not the receipt it will replace.
+  if (config.nightlyUpdates === true && options.checkLastRun !== false) {
     if (!lastRun) issues.push('No completed nightly-run receipt yet. Run guardog nightly now.');
     else {
       const timestamp = Date.parse(lastRun.finishedAt);
       if (!Number.isFinite(timestamp) || Date.now() - timestamp > 36 * 3600000) issues.push('Latest nightly run is missing or older than 36 hours.');
+      if (timestamp > Date.now()) issues.push('Latest nightly run has a future timestamp.');
+      if (!Number.isInteger(lastRun.dependencyCount) || lastRun.dependencyCount <= 0) issues.push('Latest nightly run has no verified dependency coverage.');
+      const normalizeRoots = list => [...new Set(list.map(root => resolve(root)))].sort();
+      if (!Array.isArray(lastRun.roots) || lastRun.roots.some(root => typeof root !== 'string') || JSON.stringify(normalizeRoots(lastRun.roots)) !== JSON.stringify(normalizeRoots(roots))) issues.push('Latest nightly run covered different scan roots.');
       if (lastRun.status !== 'complete') issues.push('Latest nightly scan status: ' + lastRun.status);
     }
   }

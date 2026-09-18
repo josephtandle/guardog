@@ -36,7 +36,15 @@ function performNightly(options) {
   const deadline = Date.now() + (options.timeoutMs ?? 3600000);
   const roots = options.roots || (process.env.GUARDOG_WORKSPACE ? [resolve(process.env.GUARDOG_WORKSPACE)] : config.scanRoots || []);
   const run = options.run || spawnSync;
-  const receipt = { taskClass: 'security_scan', startedAt: new Date().toISOString(), status: 'incomplete', roots, projectsScanned: 0, dependencyCount: 0, dangerousCount: 0, issues: [] };
+  let preflight;
+  try {
+    const health = checkHealth({ ...options.healthOptions, repair: true, checkLastRun: false });
+    // Do not nest the preceding run's receipt: history must not grow recursively.
+    preflight = { checkedAt: new Date().toISOString(), ok: health.ok, schedule: health.schedule, runner: health.runner, repairs: health.repairs, issues: health.issues };
+  } catch (error) {
+    preflight = { checkedAt: new Date().toISOString(), ok: false, repairs: [], issues: ['Health preflight failed: ' + error.message] };
+  }
+  const receipt = { taskClass: 'security_scan', startedAt: new Date().toISOString(), status: 'incomplete', roots, projectsScanned: 0, dependencyCount: 0, dangerousCount: 0, preflight, issues: preflight.issues.map(issue => 'Health: ' + issue) };
   const manifests = new Set();
   const visited = new Set();
   const maxDepth = Number(process.env.GUARDOG_MAX_DEPTH || 4);
@@ -63,7 +71,7 @@ function performNightly(options) {
   for (const manifest of manifests) {
     const remaining = deadline - Date.now();
     if (remaining <= 0) { receipt.issues.push('Nightly scan time budget exhausted.'); break; }
-    const result = run(process.execPath, [join(packageRoot(), 'bin', 'scan-deps.js'), manifest, '--json'], { encoding: 'utf8', timeout: Math.min(300000, remaining), maxBuffer: 8 * 1024 * 1024, windowsHide: true });
+    const result = run(process.execPath, [join(packageRoot(), 'bin', 'scan-deps.js'), manifest, '--json'], { encoding: 'utf8', timeout: remaining, maxBuffer: 8 * 1024 * 1024, windowsHide: true });
     receipt.projectsScanned++;
     try {
       const summary = JSON.parse(result.stdout);
@@ -89,8 +97,6 @@ function performNightly(options) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
-    // Bounded repair is limited to owned local state and prior schedule consent.
-    checkHealth({ repair: true });
     const receipt = runNightly();
     console.log(JSON.stringify(receipt, null, 2));
     process.exitCode = receipt.exitCode;
