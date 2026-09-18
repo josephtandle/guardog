@@ -1,5 +1,7 @@
-import { chmodSync, existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { chmodSync, existsSync, readFileSync, writeFileSync, statSync } from 'fs';
+import { join, resolve } from 'path';
+import { registerSchedule, unregisterSchedule, shellQuote } from './scheduler.js';
+import { checkHealth } from './health.js';
 import { spawnSync } from 'child_process';
 import os from 'os';
 import readline from 'readline/promises';
@@ -16,11 +18,11 @@ import {
 const DEFAULT_CONFIG = {
   nightlyUpdates: false,
   nightlyTime: '00:00',
+  scanRoots: [],
   gitPreCommitHook: false,
   virustotalConfigured: false
 };
 
-const CRON_MARKER = '# guardog-nightly';
 
 function readJson(path, fallback) {
   try {
@@ -110,7 +112,10 @@ export function installGitHook() {
       message: `Existing global git hooksPath is set to ${existingPath}. Guardog did not overwrite it.`
     };
   }
-  writeFileSync(hookDest, readFileSync(hookSource, 'utf-8'));
+  const script = readFileSync(hookSource, 'utf-8')
+    .replace(/^GUARD_DOG_DIR=.*$/m, `GUARD_DOG_DIR=${shellQuote(root)}`)
+    .replaceAll('node "$GUARD_DOG_DIR/bin/scan-deps.js"', `${shellQuote(process.execPath)} "$GUARD_DOG_DIR/bin/scan-deps.js"`);
+  writeFileSync(hookDest, script);
   spawnSync('chmod', ['+x', hookDest], { stdio: 'ignore' });
   const result = spawnSync('git', ['config', '--global', 'core.hooksPath', hooksDir], { encoding: 'utf-8' });
   if (result.status !== 0) {
@@ -136,66 +141,24 @@ export function removeGitHook() {
   };
 }
 
-export function installNightlySchedule() {
+export function installNightlySchedule(config = loadUserConfig(), options = {}) {
   ensureGuardogHome();
-  if (process.platform === 'win32') {
-    const taskCommand = `${process.execPath} "${join(packageRoot(), 'bin', 'nightly-scan.js')}"`;
-    const result = spawnSync('schtasks', [
-      '/Create',
-      '/TN',
-      'GuardogNightlyScan',
-      '/SC',
-      'DAILY',
-      '/ST',
-      '00:00',
-      '/TR',
-      taskCommand,
-      '/F'
-    ], { encoding: 'utf-8', shell: true });
-    return {
-      ok: result.status === 0,
-      message: result.status === 0 ? 'Windows scheduled task GuardogNightlyScan installed for midnight.' : result.stderr || result.stdout
-    };
-  }
-
-  const cronCommand = `${process.execPath} "${join(packageRoot(), 'src', 'index.js')}" nightly`;
-  const cronLine = `0 0 * * * ${cronCommand} >> "${join(guardogHome(), 'data', 'logs', 'nightly.log')}" 2>&1 ${CRON_MARKER}`;
-  const existing = spawnSync('crontab', ['-l'], { encoding: 'utf-8' });
-  const current = existing.status === 0 ? existing.stdout : '';
-  const next = current
-    .split('\n')
-    .filter(line => line.trim() && !line.includes(CRON_MARKER))
-    .concat(cronLine)
-    .join('\n') + '\n';
-  const result = spawnSync('crontab', ['-'], { input: next, encoding: 'utf-8' });
-  return {
-    ok: result.status === 0,
-    message: result.status === 0 ? 'Cron schedule installed for midnight.' : result.stderr || 'crontab update failed'
-  };
+  const scanRoots = config.scanRoots?.length ? config.scanRoots : process.env.GUARDOG_WORKSPACE ? [resolve(process.env.GUARDOG_WORKSPACE)] : [];
+  if (!scanRoots.length) return { ok: false, message: 'Choose a scan root first: guardog setup, or set GUARDOG_WORKSPACE.' };
+  if (!Array.isArray(scanRoots) || scanRoots.some(root => {
+    try { return typeof root !== 'string' || !statSync(root).isDirectory(); } catch { return true; }
+  })) return { ok: false, message: 'Every scan root must be an available directory before enabling nightly scans.' };
+  const next = { ...config, scanRoots };
+  const result = registerSchedule(next, options);
+  if (result.ok) saveUserConfig({ ...next, nightlyUpdates: true });
+  return result;
 }
 
-export function removeNightlySchedule() {
-  if (process.platform === 'win32') {
-    const result = spawnSync('schtasks', ['/Delete', '/TN', 'GuardogNightlyScan', '/F'], { encoding: 'utf-8', shell: true });
-    return {
-      ok: result.status === 0,
-      message: result.status === 0 ? 'Windows scheduled task removed.' : result.stderr || result.stdout
-    };
-  }
-
-  const existing = spawnSync('crontab', ['-l'], { encoding: 'utf-8' });
-  if (existing.status !== 0) {
-    return { ok: true, message: 'No crontab found.' };
-  }
-  const next = existing.stdout
-    .split('\n')
-    .filter(line => !line.includes(CRON_MARKER))
-    .join('\n') + '\n';
-  const result = spawnSync('crontab', ['-'], { input: next, encoding: 'utf-8' });
-  return {
-    ok: result.status === 0,
-    message: result.status === 0 ? 'Cron schedule removed.' : result.stderr || 'crontab update failed'
-  };
+export function removeNightlySchedule(options = {}) {
+  const config = loadUserConfig();
+  const result = unregisterSchedule(config, options);
+  if (result.ok) saveUserConfig({ ...config, nightlyUpdates: false });
+  return result;
 }
 
 export async function runSetup() {
@@ -220,13 +183,19 @@ export async function runSetup() {
   const advanced = await rl.question('Set up optional nightly scans or a global git hook? [y/N] ');
   if (yes(advanced)) {
     const nightly = await rl.question('Run Guardog every night at midnight? [y/N] ');
-    config.nightlyUpdates = yes(nightly);
-    const nightlyResult = config.nightlyUpdates ? installNightlySchedule() : removeNightlySchedule();
+    const enableNightly = yes(nightly);
+    if (enableNightly) {
+      const root = await rl.question(`Project folder to scan nightly [${process.cwd()}]: `);
+      config.scanRoots = [resolve(root.trim() || process.cwd())];
+    }
+    const nightlyResult = enableNightly ? installNightlySchedule(config) : removeNightlySchedule();
+    if (nightlyResult.ok) config.nightlyUpdates = enableNightly;
     console.log(nightlyResult.ok ? `OK: ${nightlyResult.message}` : `Skipped: ${nightlyResult.message}`);
 
     const hook = await rl.question('Install a global git pre-commit dependency scan hook? [y/N] ');
-    config.gitPreCommitHook = yes(hook);
-    const hookResult = config.gitPreCommitHook ? installGitHook() : removeGitHook();
+    const enableHook = yes(hook);
+    const hookResult = enableHook ? installGitHook() : removeGitHook();
+    if (hookResult.ok) config.gitPreCommitHook = enableHook;
     console.log(hookResult.ok ? `OK: ${hookResult.message}` : `Skipped: ${hookResult.message}`);
   } else {
     console.log('No background job or global git hook changes were made.');
@@ -239,15 +208,18 @@ export async function runSetup() {
   console.log('Try it: `guardog analyze lodash npm`');
 }
 
-export function printDoctor() {
-  ensureGuardogHome();
+export function printDoctor(options = {}) {
+  const health = checkHealth(options);
   const checks = [
     ['Node', process.version],
     ['Platform', `${process.platform} ${process.arch}`],
     ['State folder', guardogHome()],
     ['Config', existsSync(guardogConfigPath()) ? guardogConfigPath() : 'missing'],
-    ['OSV', 'ready (no key required)'],
-    ['VirusTotal', hasVirusTotalKey() ? 'configured' : 'optional/not configured'],
+    ['OSV', health.osv],
+    ['VirusTotal', health.virusTotal],
+    ['Nightly schedule', `${health.schedule.state}: ${health.schedule.detail}`],
+    ['Scan roots', health.scanRoots.join(', ') || 'not selected'],
+    ['Last nightly scan', health.lastRun ? `${health.lastRun.finishedAt}: ${health.lastRun.status}, ${health.lastRun.dependencyCount} dependencies` : 'never verified'],
     ['External notifications', 'none']
   ];
   console.log('\nGuardog doctor');
@@ -255,4 +227,7 @@ export function printDoctor() {
     console.log(`${label}: ${value}`);
   }
   console.log('\nInstall checks: use `guardog install <package>` for npm or `guardog install pip <package>` for PyPI.');
+  for (const repair of health.repairs) console.log(`Repaired: ${repair}`);
+  for (const issue of health.issues) console.log(`Attention: ${issue}`);
+  return health;
 }
