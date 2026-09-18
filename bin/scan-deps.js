@@ -1,79 +1,38 @@
 #!/usr/bin/env node
-/**
- * Guard Dog Dependency Scanner
- * Reads a project's package.json and scans all dependencies.
- * Used by: cron, npm hooks, git hooks, Mission Control.
- *
- * Usage:
- *   node scan-deps.js <path-to-package.json> [--changed-only <old-package.json>]
- */
+/** Audit exact installed/locked npm dependencies. Exit 0 complete, 1 danger, 2 incomplete. */
+import { resolve } from 'node:path';
+import { collectDependencies } from '../src/dependency-inventory.js';
 
-import { readFileSync, existsSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { importModuleFromPath } from '../src/module-loader.js';
-
-// Guard Dog lives one level up from bin/
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const guardDogRoot = resolve(__dirname, '..');
-
+const args = process.argv.slice(2);
+const json = args.includes('--json');
+const manifest = args[0];
+const log = console.log.bind(console);
+const errorLog = console.error.bind(console);
 async function main() {
-  const { GuardDog } = await importModuleFromPath(resolve(guardDogRoot, 'src/index.js'));
-  const args = process.argv.slice(2);
-  const pkgPath = args[0];
-  const changedOnlyFlag = args.indexOf('--changed-only');
-  const oldPkgPath = changedOnlyFlag !== -1 ? args[changedOnlyFlag + 1] : null;
-
-  if (!pkgPath) {
-    console.error('Usage: scan-deps.js <package.json> [--changed-only <old-package.json>]');
-    process.exit(1);
+  if (!manifest || manifest.startsWith('--')) throw new Error('Usage: guard-dog-scan <package.json> [--json] [--changed-only <old-package.json>]');
+  const inventory = collectDependencies(resolve(manifest));
+  // Manifest changes can alter transitive resolution, so legacy changed-only callers
+  // receive a full resolved inventory audit rather than skipping vulnerable leaves.
+  if (!json && args.includes('--changed-only')) log('Auditing the full resolved dependency inventory, including transitive changes.');
+  let results = [];
+  if (inventory.packages.length > 0) {
+    if (json) { console.log = () => {}; console.error = () => {}; console.warn = () => {}; }
+    const { GuardDog } = await import('../src/index.js');
+    results = await new GuardDog().batchAnalyze(inventory.packages);
   }
-
-  const fullPath = resolve(pkgPath);
-  if (!existsSync(fullPath)) {
-    console.error(`File not found: ${fullPath}`);
-    process.exit(1);
+  const dangerousCount = results.filter(result => result.decision?.action === 'BARK').length;
+  const incomplete = !inventory.complete || results.some(result => result.decision?.coverage === 'incomplete' || result.cveResults?.status === 'unavailable');
+  const status = dangerousCount ? 'dangerous' : incomplete ? 'incomplete' : 'complete';
+  const summary = { status, dependencyCount: inventory.packages.length, dangerousCount, issues: inventory.issues };
+  if (json) log(JSON.stringify(summary));
+  else {
+    log(`Guard Dog: ${summary.dependencyCount} exact dependency versions audited; ${status}.`);
+    inventory.issues.forEach(issue => errorLog(`Incomplete coverage: ${issue}`));
   }
-
-  const pkg = JSON.parse(readFileSync(fullPath, 'utf-8'));
-  const allDeps = {
-    ...pkg.dependencies,
-    ...pkg.devDependencies
-  };
-
-  let depsToScan = Object.keys(allDeps);
-
-  if (oldPkgPath && existsSync(resolve(oldPkgPath))) {
-    const oldPkg = JSON.parse(readFileSync(resolve(oldPkgPath), 'utf-8'));
-    const oldDeps = {
-      ...oldPkg.dependencies,
-      ...oldPkg.devDependencies
-    };
-    depsToScan = depsToScan.filter(dep => !oldDeps[dep] || oldDeps[dep] !== allDeps[dep]);
-  }
-
-  if (depsToScan.length === 0) {
-    console.log('🐕 Guard Dog: No dependencies to scan.');
-    process.exit(0);
-  }
-
-  console.log(`🐕 Guard Dog: Scanning ${depsToScan.length} dependencies from ${fullPath}`);
-
-  const guardDog = new GuardDog();
-  const packages = depsToScan.map(name => ({ name, ecosystem: 'npm' }));
-  const results = await guardDog.batchAnalyze(packages);
-  const dangerous = results.filter(r => r.decision.action === 'BARK');
-
-  if (dangerous.length > 0) {
-    console.error(`\n🚨 Guard Dog found ${dangerous.length} DANGEROUS package(s)!`);
-    dangerous.forEach(r => {
-      console.error(`  - ${r.packageName}: ${r.decision.reasons.join(', ')}`);
-    });
-    process.exit(1);
-  }
+  process.exitCode = dangerousCount ? 1 : incomplete ? 2 : 0;
 }
-
 main().catch(error => {
-  console.error(error?.stack || error?.message || String(error));
-  process.exit(1);
+  if (json) log(JSON.stringify({ status: 'incomplete', dependencyCount: 0, dangerousCount: 0, issues: [error.message] }));
+  else errorLog(error.message);
+  process.exitCode = 2;
 });
