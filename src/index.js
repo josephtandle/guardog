@@ -322,8 +322,8 @@ export class GuardDog {
       const result = await this.analyze(pkg.name, pkg.ecosystem, pkg.target, pkg.version);
       results.push(result);
       
-      // Small delay between requests to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, this.scanner ? 16000 : 250));
+      // VirusTotal enforces its own request-level queue, including refreshes.
+      await new Promise(resolve => setTimeout(resolve, 250));
     }
 
     // Summary

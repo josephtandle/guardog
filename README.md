@@ -1,5 +1,9 @@
 # Guard Dog 3.0
 
+VirusTotal requests are paced within each process, including retries and refreshes.
+Separate processes or other software sharing the same API key can still exhaust its
+quota. Rate limits leave coverage incomplete; they never turn into a clean result.
+
 Guard Dog checks software packages before installation and rechecks your projects against current security information. Its command is `guardog`, with `guarddog` and `guard-dog` aliases. The official source is [josephtandle/guardog](https://github.com/josephtandle/guardog). Other projects with similar names are unrelated.
 
 ## Install with your AI assistant
