@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { spawnSync } from 'child_process';
 import { createHash } from 'node:crypto';
-import dotenv from 'dotenv';
+import { loadEnvFile } from './env-loader.js';
 
 import { VirusTotalScanner } from './virustotal-scanner.js';
 import { ReputationChecker } from './reputation-checker.js';
@@ -32,8 +32,8 @@ import {
 } from './setup.js';
 
 // Load environment variables
-dotenv.config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env'), quiet: true });
-dotenv.config({ path: guardogEnvPath(), override: true, quiet: true });
+loadEnvFile(join(dirname(fileURLToPath(import.meta.url)), '../.env'));
+loadEnvFile(guardogEnvPath(), { override: true });
 
 export async function deriveVirusTotalTarget(reputationData, ecosystem) {
   const registry = reputationData?.registry;
