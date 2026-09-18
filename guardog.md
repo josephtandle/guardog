@@ -1,48 +1,12 @@
-# Guardog
+# Guard Dog skill
 
-Scan npm or PyPI packages for security threats before installing them.
+Use Guard Dog before installing npm dependencies and for recurring exact-version audits.
+Official project: https://github.com/josephtandle/guardog. CLI: `guardog` (aliases `guarddog`, `guard-dog`).
 
-## What it does
+1. Locate the installed command using the platform's command discovery, then run `guardog --version` and `guardog doctor`.
+2. If missing or unhealthy, follow `GUARD_DOG_PROMPT.md`. Use `doctor --repair` for bounded supported repairs and verify the result.
+3. Before supported npm installs, use `guardog install <package>`. Never fall back to a direct package-manager install when the gate blocks.
+4. Audit existing projects with `guardog scan "<folder>"`. Report exact versions and coverage, including transitive dependencies.
+5. Set up opted-in daily scans with `updates enable --workspace "<folder>" --time HH:MM`, inspect registration, and run `nightly` once.
 
-Runs a multi-layer security check:
-- CVE lookup (Google OSV database)
-- Package reputation (npm/PyPI/GitHub metadata)
-- Malicious code pattern detection (30+ patterns)
-- VirusTotal scan if API key is configured (70+ antivirus engines)
-
-Returns one of three verdicts:
-- **SILENT** - safe to install
-- **WHINE** - suspicious, review before installing
-- **BARK** - dangerous, do not install
-
-## Usage
-
-When the user invokes /guardog, run a security scan on the specified package.
-
-Parse the arguments:
-- First arg: package name
-- Second arg (optional): ecosystem — `npm` (default) or `pypi`
-
-Run the scan:
-```
-node ~/guardog/src/index.js analyze <package> [npm|pypi]
-```
-
-If ~/guardog doesn't exist, try to locate index.js via:
-```
-find ~ -name "index.js" -path "*/guardog/src/*" 2>/dev/null | head -1
-```
-
-## Reporting results
-
-After the scan completes:
-1. State the verdict clearly (SILENT / WHINE / BARK)
-2. Summarize the key reasons
-3. Give a clear install recommendation
-4. For BARK or WHINE, suggest running /gstack-cso on any affected code
-
-## Examples
-
-/guardog lodash
-/guardog requests pypi
-/guardog some-random-package npm
+Missing VirusTotal reports, API failures, and unresolved versions are incomplete protection. Never represent them as safe. VirusTotal queries and OSV advisories do not replace operating-system antivirus. Never upload private files, erase findings, or weaken checks to make installation succeed.

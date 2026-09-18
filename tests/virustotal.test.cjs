@@ -38,7 +38,7 @@ test("VirusTotal remains wired with the configured API key", async () => {
         timeoutMs: 1000,
       },
     });
-    const result = await scanner.getFileReport("synthetic-hash");
+    const result = await scanner.getFileReport("a".repeat(64));
 
     assert.equal(request.options.headers["x-apikey"], "synthetic-test-key");
     assert.equal(result.maliciousVotes, 2);

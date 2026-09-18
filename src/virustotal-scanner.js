@@ -8,6 +8,7 @@ export class VirusTotalScanner {
     this.apiKey = config.virustotal.apiKey || process.env.VIRUSTOTAL_API_KEY;
     this.baseUrl = config.virustotal.baseUrl;
     this.timeout = config.virustotal.timeoutMs;
+    this.maxReportAgeMs = (config.virustotal.maxReportAgeHours || 24) * 3600000;
     
     if (!this.apiKey) {
       throw new Error('VirusTotal API key is required (VIRUSTOTAL_API_KEY)');
@@ -27,11 +28,24 @@ export class VirusTotalScanner {
       if (isUrl) {
         return await this.scanUrl(target);
       } else {
-        return await this.getFileReport(target);
+        const report = await this.getFileReport(target);
+        if (report.success && report.found && report.stale) {
+          // Ask VT to refresh an already known public hash. Never upload local files.
+          try {
+            const response = await fetch(`${this.baseUrl}/files/${encodeURIComponent(target)}/analyse`, {
+              method: 'POST', headers: { 'x-apikey': this.apiKey },
+              signal: AbortSignal.timeout(this.timeout)
+            });
+            report.refreshRequested = response.ok;
+            report.refreshStatus = response.status;
+          } catch (error) { report.refreshError = error.message; }
+        }
+        return report;
       }
     } catch (error) {
       return {
         success: false,
+        status: /401|403/.test(error.message) ? 'unauthorized' : /429/.test(error.message) ? 'rate_limited' : 'unavailable',
         error: error.message,
         maliciousVotes: 0,
         suspiciousVotes: 0
@@ -124,18 +138,29 @@ export class VirusTotalScanner {
    * @returns {Promise<Object>} Report results
    */
   async getFileReport(hash) {
+    if (!/^(?:[a-f\d]{32}|[a-f\d]{40}|[a-f\d]{64})$/i.test(hash)) throw new Error('A valid file hash is required');
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     try {
-      const response = await fetch(`${this.baseUrl}/files/${hash}`, {
+      let response = await fetch(`${this.baseUrl}/files/${hash}`, {
         headers: { 'x-apikey': this.apiKey },
         signal: controller.signal
       });
+      if (response.status === 429 || response.status >= 500) {
+        const retrySeconds = Number(response.headers.get('retry-after') || 1);
+        if (Number.isFinite(retrySeconds) && retrySeconds >= 0 && retrySeconds <= 5) {
+          await new Promise(resolve => setTimeout(resolve, retrySeconds * 1000));
+          response = await fetch(`${this.baseUrl}/files/${hash}`, {
+            headers: { 'x-apikey': this.apiKey }, signal: controller.signal
+          });
+        }
+      }
 
       if (response.status === 404) {
         return {
           success: true,
+          status: 'not_found',
           found: false,
           maliciousVotes: 0,
           suspiciousVotes: 0
@@ -166,7 +191,9 @@ export class VirusTotalScanner {
     const suspiciousVotes = stats.suspicious || 0;
     const undetectedVotes = stats.undetected || 0;
     const harmlessVotes = stats.harmless || 0;
-    const totalEngines = Object.values(stats).reduce((sum, val) => sum + val, 0);
+    const counts = [maliciousVotes, suspiciousVotes, undetectedVotes, harmlessVotes];
+    const totalEngines = counts.every(value => Number.isFinite(value) && value >= 0)
+      ? counts.reduce((sum, val) => sum + val, 0) : 0;
 
     if (totalEngines === 0) {
       return {
@@ -180,6 +207,10 @@ export class VirusTotalScanner {
     return {
       success: true,
       found: true,
+      status: 'complete',
+      checkedAt: new Date().toISOString(),
+      lastAnalysisAt: data.data?.attributes?.last_analysis_date ? new Date(data.data.attributes.last_analysis_date * 1000).toISOString() : null,
+      stale: !data.data?.attributes?.last_analysis_date || Date.now() - data.data.attributes.last_analysis_date * 1000 > this.maxReportAgeMs,
       maliciousVotes,
       suspiciousVotes,
       undetectedVotes,

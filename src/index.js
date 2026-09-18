@@ -9,7 +9,6 @@ import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import { spawnSync } from 'child_process';
 import { createHash } from 'node:crypto';
-import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 
 import { VirusTotalScanner } from './virustotal-scanner.js';
@@ -18,7 +17,8 @@ import { CVEChecker } from './cve-checker.js';
 import { PatternAnalyzer } from './pattern-analyzer.js';
 import { DecisionTree } from './decision-tree.js';
 import { ensureGuardogHome, guardogDataDir, guardogEnvPath, packageRoot } from './paths.js';
-import { parseInstallRequest } from './install-request.js';
+import { runGuardedInstall } from './guarded-install.js';
+import { checkHealth } from './health.js';
 import {
   installGitHook,
   installNightlySchedule,
@@ -167,8 +167,8 @@ export class GuardDog {
     // Step 1: Reputation check
     console.log('📊 Checking reputation...');
     try {
-      reputationData = await this.reputation.checkReputation(packageName, ecosystem);
-      console.log(`✓ Reputation check complete (${reputationData.signals.length} signals)`);
+      reputationData = await this.reputation.checkReputation(packageName, ecosystem, version);
+      console.log(reputationData.error ? `Reputation unavailable: ${reputationData.error}` : `✓ Reputation check complete (${reputationData.signals.length} signals)`);
     } catch (error) {
       console.error('✗ Reputation check failed:', error.message);
     }
@@ -205,13 +205,18 @@ export class GuardDog {
       console.log('⚠️  VirusTotal scan skipped (no API key)');
     }
 
+    scanResults.status = scanResults.status || (!this.scanner ? 'not_configured' : !vtTarget ? 'unavailable'
+      : !scanResults.success ? 'unavailable' : !scanResults.found ? 'not_found' : 'complete');
+    scanResults.target = vtTarget;
+    scanResults.kind = /^https?:/.test(vtTarget || '') ? 'url_reputation' : 'artifact_hash';
+    scanResults.checkedAt = new Date().toISOString();
+    const resolvedVersion = version || reputationData?.registry?.version || null;
     // Step 3: CVE check
     console.log('🔐 Checking CVE databases...');
     try {
-      const resolvedVersion = version || reputationData?.registry?.version || null;
       cveResults = await this.cveChecker.checkCVEs(packageName, ecosystem, resolvedVersion);
       const cveCount = cveResults.vulnerabilities?.length || 0;
-      console.log(`✓ CVE check complete (${cveCount} vulnerabilities found)`);
+      console.log(cveResults.status === 'complete' ? `✓ CVE check complete for ${resolvedVersion} (${cveCount} vulnerabilities found)` : `CVE check INCOMPLETE: ${cveResults.error}`);
     } catch (error) {
       console.error('✗ CVE check failed:', error.message);
     }
@@ -225,7 +230,8 @@ export class GuardDog {
         codeSnippets['description'] = reputationData.registry.description;
       }
       patternResults = this.patternAnalyzer.analyzeFiles(codeSnippets);
-      console.log(`✓ Pattern analysis complete (score: ${patternResults.totalScore})`);
+      patternResults.scope = 'registry_description_only';
+      console.log(`Metadata text checks complete (score: ${patternResults.totalScore}); package source files were not scanned.`);
     } catch (error) {
       console.error('✗ Pattern analysis failed:', error.message);
     }
@@ -252,6 +258,8 @@ export class GuardDog {
 
     const result = {
       packageName,
+      version: resolvedVersion,
+      versionSource: version ? 'requested_exact' : 'registry_latest',
       ecosystem,
       decision,
       scanResults,
@@ -279,11 +287,14 @@ export class GuardDog {
       history.push({
         packageName: result.packageName,
         ecosystem: result.ecosystem,
+        version: result.version,
+        coverage: result.decision.coverage,
+        checks: { osv: result.cveResults?.status || 'unavailable', virustotal: result.scanResults?.status || 'unavailable' },
         action: result.decision.action,
         threat: result.decision.threat,
         confidence: result.decision.confidence,
         reasons: result.decision.reasons,
-        cveCount: result.cveResults?.vulnerabilities?.length || 0,
+        cveCount: result.cveResults?.status === 'complete' ? result.cveResults.vulnerabilities.length : null,
         patternScore: result.patternResults?.totalScore || 0,
         duration: result.duration,
         timestamp: result.timestamp
@@ -312,19 +323,21 @@ export class GuardDog {
       results.push(result);
       
       // Small delay between requests to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, this.scanner ? 16000 : 250));
     }
 
     // Summary
     const dangerous = results.filter(r => r.decision.action === 'BARK').length;
     const suspicious = results.filter(r => r.decision.action === 'WHINE').length;
-    const safe = results.filter(r => r.decision.action === 'SILENT').length;
+    const safe = results.filter(r => r.decision.installAllowed).length;
+    const incomplete = results.filter(r => r.decision.coverage !== 'complete').length;
 
     console.log('\n📊 BATCH ANALYSIS SUMMARY');
     console.log('─'.repeat(60));
     console.log(`🚨 Dangerous:  ${dangerous}`);
     console.log(`⚠️  Suspicious: ${suspicious}`);
-    console.log(`✅ Safe:       ${safe}`);
+    console.log(`Checks passed: ${safe}`);
+    console.log(`Incomplete:   ${incomplete}`);
     console.log(`📦 Total:      ${results.length}`);
     console.log('─'.repeat(60));
 
@@ -354,9 +367,9 @@ export class GuardDog {
     console.log('🔍 Testing VirusTotal connection...');
     if (this.scanner) {
       try {
-        await this.scanner.getFileReport('test');
-        tests.virustotal = true;
-        console.log('✓ VirusTotal API key valid');
+        const probe = await this.scanner.getFileReport('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+        tests.virustotal = probe.success === true;
+        console.log(tests.virustotal ? '✓ VirusTotal authenticated lookup succeeded' : 'VirusTotal lookup incomplete');
       } catch (error) {
         console.log('✗ VirusTotal test failed:', error.message);
       }
@@ -375,6 +388,8 @@ export class GuardDog {
     }
 
     console.log('─'.repeat(60));
+    const osv = await this.cveChecker.checkCVEs('lodash', 'npm', '4.17.21');
+    tests.osv = osv.status === 'complete';
     const passed = Object.values(tests).filter(Boolean).length;
     console.log(`\n✅ ${passed}/${Object.keys(tests).length} tests passed\n`);
 
@@ -389,80 +404,34 @@ function usage() {
   console.log('  guardog --version                     - Print the installed version');
   console.log('  guardog setup                         - Run first-time setup wizard');
   console.log('  guardog setup --quick                 - Safe local setup with no background changes');
-  console.log('  guardog doctor                        - Check local configuration');
+  console.log('  guardog doctor [--repair] [--json]    - Check health and bounded local repairs');
   console.log('  guardog test                          - Run system test');
   console.log('  guardog analyze <pkg> [eco] [target]  - Analyze one package');
   console.log('  guardog batch <json-file>             - Batch analyze packages');
-  console.log('  guardog install [npm] <args>          - Scan with OSV, then run npm install');
-  console.log('  guardog install pip <args>            - Scan with OSV, then run pip install');
-  console.log('  guardog nightly                       - Scan package.json files under $HOME');
-  console.log('  guardog updates enable|disable|status - Manage midnight scans');
+  console.log('  guardog install [npm] <package>       - Gate exact npm artifacts; scripts stay disabled');
+  console.log('  guardog scan <project> [--json]       - Audit exact installed or locked npm versions');
+  console.log('  guardog nightly                       - Repair local health and scan configured roots');
+  console.log('  guardog updates enable --workspace <folder> --time HH:MM');
+  console.log('  guardog updates disable|status       - Manage and verify the daily schedule');
   console.log('  guardog hooks enable|disable|status   - Manage git dependency hook');
 }
 
-async function guardedInstall(args) {
-  const request = parseInstallRequest(args);
-  const { packages } = request;
-
-  const guardDog = new GuardDog();
-  if (packages.length > 0) {
-    console.log(`Guardog OSV pre-install scan: ${packages.map(p => p.name).join(', ')}`);
-    const results = await guardDog.batchAnalyze(packages);
-    const dangerous = results.filter(r => r.decision.action === 'BARK');
-    if (dangerous.length > 0) {
-      console.error('\nGuardog blocked install because dangerous package(s) were found.');
-      process.exit(1);
-    }
-  } else {
-    const pkgPath = resolve(process.cwd(), 'package.json');
-    if (request.tool === 'npm' && existsSync(pkgPath)) {
-      const scan = spawnSync(process.execPath, [join(packageRoot(), 'bin', 'scan-deps.js'), pkgPath], { stdio: 'inherit' });
-      if (scan.error) {
-        console.error(`\nGuardog could not run dependency scan: ${scan.error.message}`);
-        process.exit(1);
-      }
-      if (scan.status !== 0) {
-        console.error('\nGuardog blocked install because dependency scan failed.');
-        process.exit(scan.status || 1);
-      }
-    } else {
-      console.error(`Guardog cannot safely scan this ${request.tool} install request. Use explicit package names, or scan the dependency file separately before installing.`);
-      process.exit(1);
-    }
-  }
-
-  const command = request.tool === 'npm'
-    ? (process.platform === 'win32' ? 'npm.cmd' : 'npm')
-    : (process.env.GUARDOG_PYTHON || (process.platform === 'win32' ? 'py' : 'python3'));
-  const commandArgs = request.tool === 'npm'
-    ? request.commandArgs
-    : ['-m', 'pip', ...request.commandArgs];
-  const isWin = process.platform === 'win32';
-  const result = isWin
-    ? spawnSync(command, commandArgs.map(a => `"${a}"`), { stdio: 'inherit', shell: true })
-    : spawnSync(command, commandArgs, { stdio: 'inherit', shell: false });
-  if (result.error) {
-    console.error(`Guardog could not start ${request.tool}: ${result.error.message}`);
-    process.exit(1);
-  }
-  process.exit(result.status ?? 1);
-}
-
-function updatesCommand(action) {
+function updatesCommand(action, args = []) {
   const config = loadUserConfig();
   if (action === 'enable') {
-    const result = installNightlySchedule();
-    config.nightlyUpdates = result.ok;
-    saveUserConfig(config);
+    const roots = args.flatMap((arg, i) => arg === '--workspace' && args[i + 1] ? [resolve(args[i + 1])] : []);
+    if (roots.length) config.scanRoots = roots;
+    const time = args.indexOf('--time');
+    if (time !== -1) config.nightlyTime = args[time + 1];
+    const result = installNightlySchedule(config);
     console.log(result.message);
+    process.exitCode = result.ok ? 0 : 2;
   } else if (action === 'disable') {
     const result = removeNightlySchedule();
-    config.nightlyUpdates = false;
-    saveUserConfig(config);
     console.log(result.message);
+    process.exitCode = result.ok ? 0 : 2;
   } else {
-    console.log(`Nightly updates: ${config.nightlyUpdates ? 'enabled' : 'disabled'}`);
-    console.log('Default is disabled. Enable with `guardog updates enable`.');
+    printDoctor();
   }
 }
 
@@ -495,13 +464,20 @@ async function main(argv = process.argv.slice(2)) {
     if (args[1] === '--quick') runQuickSetup();
     else await runSetup();
   } else if (command === 'doctor') {
-    printDoctor();
+    const health = args.includes('--json') ? checkHealth({ repair: args.includes('--repair') }) : printDoctor({ repair: args.includes('--repair') });
+    if (args.includes('--json')) console.log(JSON.stringify(health));
+    process.exitCode = health.ok ? 0 : 2;
   } else if (command === 'updates') {
-    updatesCommand(args[1] || 'status');
+    updatesCommand(args[1] || 'status', args.slice(2));
   } else if (command === 'hooks') {
     hooksCommand(args[1] || 'status');
   } else if (command === 'install') {
-    await guardedInstall(args.slice(1));
+    await runGuardedInstall(args.slice(1), GuardDog);
+  } else if (command === 'scan') {
+    const project = resolve(args[1] || process.cwd());
+    const manifest = project.endsWith('package.json') ? project : join(project, 'package.json');
+    const result = spawnSync(process.execPath, [join(packageRoot(), 'bin', 'scan-deps.js'), manifest, ...args.slice(2)], { stdio: 'inherit' });
+    process.exitCode = result.status ?? 2;
   } else if (command === 'nightly') {
     const result = spawnSync(process.execPath, [join(packageRoot(), 'bin', 'nightly-scan.js')], { stdio: 'inherit' });
     if (result.error) {
@@ -512,7 +488,8 @@ async function main(argv = process.argv.slice(2)) {
   } else if (command === 'test') {
     // Run system test
     const guardDog = new GuardDog();
-    await guardDog.test();
+    const result = await guardDog.test();
+    process.exitCode = Object.values(result).every(Boolean) ? 0 : 2;
   } else if (command === 'analyze') {
     // Analyze single package
     const guardDog = new GuardDog();
@@ -525,7 +502,9 @@ async function main(argv = process.argv.slice(2)) {
       process.exit(1);
     }
 
-    await guardDog.analyze(packageName, ecosystem, target);
+    const spec = packageName.match(/^(.+)@([^@]+)$/);
+    const result = await guardDog.analyze(spec ? spec[1] : packageName, ecosystem, target, spec ? spec[2] : null);
+    process.exitCode = result.decision.action === 'BARK' ? 1 : result.decision.coverage === 'incomplete' ? 2 : 0;
   } else if (command === 'batch') {
     // Batch analyze from JSON file
     const guardDog = new GuardDog();
@@ -547,6 +526,6 @@ const invokedPath = process.argv[1] ? realpathSync(resolve(process.argv[1])) : '
 if (fileURLToPath(import.meta.url) === invokedPath) {
   main().catch(error => {
     console.error(`Guardog could not complete the command: ${error?.message || String(error)}`);
-    process.exit(1);
+    process.exit(error.exitCode === 2 ? 2 : 1);
   });
 }

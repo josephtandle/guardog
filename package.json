@@ -1,17 +1,19 @@
 {
   "name": "guard-dog",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Security agent for scanning packages and detecting malicious code",
   "main": "src/index.js",
   "type": "module",
   "bin": {
     "guard-dog": "src/index.js",
     "guardog": "src/index.js",
+    "guarddog": "src/index.js",
     "guard-dog-scan": "bin/scan-deps.js"
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "node tests/test.js && node --test tests/*.test.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "test:live": "node tests/test.js",
     "scan": "node bin/scan-deps.js",
     "setup": "node src/index.js setup",
     "cron": "node bin/nightly-scan.js"
@@ -19,6 +21,8 @@
   "files": [
     ".env.example",
     "README.md",
+    "QUICKSTART.md",
+    "GUARD_DOG_PROMPT.md",
     "autonomizer.json",
     "LICENSE",
     "SECURITY.md",
@@ -34,7 +38,7 @@
     "bin/run-cso.sh"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

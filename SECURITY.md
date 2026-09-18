@@ -15,7 +15,7 @@ requests a private security contact without including exploit details.
 
 ## Supported Versions
 
-Guardog 1.2.x is the supported public release line. Security fixes land on the
+Guard Dog 3.x is the supported release line for this code. Security fixes land on the
 default branch first, then ship from the latest tagged version.
 
 ## Handling Secrets

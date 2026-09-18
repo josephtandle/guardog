@@ -1,26 +1,16 @@
-# Guard-Dog
+# Guard Dog contributor guide
 
-Package-level security scanner. Scans npm/pip packages for known CVEs,
-malicious patterns, VirusTotal flags, and reputation signals.
+Read README.md and guardog.md before changing behavior or describing protection.
 
-## Decision Levels
-- BARK (>=100): Danger, install blocked
-- WHINE (50-99): Suspicious, warn user
-- SILENT (<50): Safe, pass through
+The CLI is `node src/index.js`. Run `npm test` for offline regression tests.
+`npm run test:live` makes external service calls and may use a locally configured key.
 
-## Companion: /gstack-cso (code-level review)
+Never equate SILENT with guaranteed safety. Coverage and `installAllowed` are
+separate from the warning threshold. Missing required evidence blocks guarded installs.
+Audit exact installed or locked versions, never substitute latest for an unresolved version.
+Do not upload private files or print credentials.
 
-Guard-dog catches bad packages. /gstack-cso catches bad code.
-When a scan returns BARK or WHINE, also run /gstack-cso on the affected code:
-
-  bash bin/run-cso.sh <path-to-code>
-
-/gstack-cso runs OWASP Top 10 + STRIDE threat modeling. Complements guard-dog's
-package-level analysis with code-level vulnerability review.
-
-## Entry Point
-  node src/index.js analyze <package> [ecosystem] [url]
-  node src/index.js batch <packages.json>
-
-## Cron
-  Nightly at 02:30 GMT+8 via bin/cron-nightly-scan.sh
+Nightly scans use `bin/nightly-scan.js` and explicitly configured scan roots.
+Schedule registration must be read back from the OS. Self-repair is limited to
+owned local state and previously authorized scheduling, never security bypasses.
+Use independent review and cross-platform tests before publishing a release.

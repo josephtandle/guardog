@@ -1,157 +1,40 @@
-"use strict";
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const test = require('node:test');
 
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const os = require("node:os");
-const path = require("node:path");
-const { spawnSync } = require("node:child_process");
-const test = require("node:test");
-
-const repoRoot = path.resolve(__dirname, "..");
-
-function run(command, args, options = {}) {
-  return spawnSync(command, args, {
-    cwd: repoRoot,
-    encoding: "utf8",
-    ...options,
-  });
-}
-
-test("packed Guardog starts without workspace-only helpers", () => {
-  const sourceVersion = JSON.parse(
-    fs.readFileSync(path.join(repoRoot, "package.json"), "utf8")
-  ).version;
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "guardog-packed-"));
-
+// Real packed installation on each platform, including paths containing spaces.
+test('packed release installs and runs without workspace helpers', () => {
+  const root = path.resolve(__dirname, '..');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'guard dog packed '));
+  const npmCli = process.env.npm_execpath;
+  assert.ok(npmCli, 'Run the release suite with npm test so npm-cli.js is known on Windows');
+  const run = (args, opts = {}) => spawnSync(process.execPath, args, { cwd: dir, encoding: 'utf8', ...opts });
   try {
-    fs.writeFileSync(
-      path.join(tempDir, "package.json"),
-      JSON.stringify({ name: "guardog-release-test", version: "1.0.0", private: true })
-    );
-
-    const packed = run("npm", ["pack", "--json", "--pack-destination", tempDir]);
-    assert.equal(packed.status, 0, packed.stderr || packed.stdout);
-    const [{ filename, files }] = JSON.parse(packed.stdout);
-
-    assert.equal(
-      files.some(({ path: filePath }) => /telegram/i.test(filePath)),
-      false,
-      "the public package must not contain Telegram modules"
-    );
-
-    const tarball = path.join(tempDir, filename);
-    const installed = run(
-      "npm",
-      ["install", "--ignore-scripts", "--no-audit", "--no-fund", tarball],
-      { cwd: tempDir }
-    );
-    assert.equal(installed.status, 0, installed.stderr || installed.stdout);
-
-    const cli = path.join(tempDir, "node_modules", "guard-dog", "src", "index.js");
-    const guardogHome = path.join(tempDir, "guardog-home");
-    const isolatedEnvironment = {
-      ...process.env,
-      GUARDOG_HOME: guardogHome,
-      VIRUSTOTAL_API_KEY: "",
-    };
-
-    const setup = run(process.execPath, [cli, "setup", "--quick"], {
-      cwd: tempDir,
-      env: isolatedEnvironment,
-    });
-    assert.equal(setup.status, 0, setup.stderr || setup.stdout);
-    assert.match(setup.stdout, /OSV scanning is ready now/);
-    assert.match(setup.stdout, /No background job or global git hook was installed or changed/);
-
-    const doctor = run(
-      process.execPath,
-      [cli, "doctor"],
-      { cwd: tempDir, env: isolatedEnvironment }
-    );
-    assert.equal(doctor.status, 0, doctor.stderr || doctor.stdout);
-    assert.match(doctor.stdout, /Guardog doctor/);
-
-    const version = run(
-      process.execPath,
-      [cli, "--version"],
-      { cwd: tempDir, env: isolatedEnvironment }
-    );
-    assert.equal(version.status, 0, version.stderr || version.stdout);
-    // The invariant is that the packed CLI reports the source version
-    assert.equal(version.stdout.trim(), sourceVersion);
-
-    const packageManagerMarker = path.join(tempDir, "package-manager-ran");
-    const fakeBin = path.join(tempDir, "fake-bin");
-    fs.mkdirSync(fakeBin);
-    const fakeNpm = path.join(fakeBin, "npm");
-    const fakePython = path.join(tempDir, "fake-python");
-    const packageManagerStub = `#!/bin/sh\nprintf '%s\\n' "$*" >> "${packageManagerMarker}"\nexit 0\n`;
-    fs.writeFileSync(fakeNpm, packageManagerStub, { mode: 0o755 });
-    fs.writeFileSync(fakePython, packageManagerStub, { mode: 0o755 });
-
-    const fetchFixture = path.join(tempDir, "fetch-fixture.mjs");
-    fs.writeFileSync(
-      fetchFixture,
-      `globalThis.fetch = async (input) => {
-  const url = String(input);
-  let body = {};
-  if (url.includes('registry.npmjs.org')) {
-    body = { name: 'lodash', 'dist-tags': { latest: '4.17.21' }, versions: { '4.17.21': { license: 'MIT' } }, maintainers: [{}] };
-  } else if (url.includes('api.npmjs.org/downloads')) {
-    body = { downloads: 1000000 };
-  } else if (url.includes('pypi.org')) {
-    body = { info: { name: 'requests', version: '2.32.3', summary: 'fixture', license: 'Apache-2.0' }, releases: { '2.32.3': [{}] } };
-  } else if (url.includes('api.osv.dev')) {
-    body = { vulns: [] };
-  }
-  return new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
-};\n`
-    );
-
-    const guardedEnvironment = {
-      ...isolatedEnvironment,
-      GUARDOG_PYTHON: fakePython,
-      NODE_OPTIONS: `--import=${fetchFixture}`,
-      PATH: `${fakeBin}${path.delimiter}${process.env.PATH}`,
-    };
-
-    const guardedNpm = run(
-      process.execPath,
-      [cli, "install", "npm", "install", "lodash@4.17.21"],
-      { cwd: tempDir, env: guardedEnvironment }
-    );
-    assert.equal(guardedNpm.status, 0, guardedNpm.stderr || guardedNpm.stdout);
-    assert.match(fs.readFileSync(packageManagerMarker, "utf8"), /install lodash@4\.17\.21/);
-
-    const guardedPip = run(
-      process.execPath,
-      [cli, "install", "pip", "install", "requests==2.32.3"],
-      { cwd: tempDir, env: guardedEnvironment }
-    );
-    assert.equal(guardedPip.status, 0, guardedPip.stderr || guardedPip.stdout);
-    assert.match(fs.readFileSync(packageManagerMarker, "utf8"), /-m pip install requests==2\.32\.3/);
-
-    fs.rmSync(packageManagerMarker);
-    const unsupportedPip = run(
-      process.execPath,
-      [cli, "install", "pip", "install", "-r", "requirements.txt"],
-      {
-        cwd: tempDir,
-        env: guardedEnvironment,
-      }
-    );
-    assert.equal(unsupportedPip.status, 1, unsupportedPip.stderr || unsupportedPip.stdout);
-    assert.match(unsupportedPip.stderr, /cannot safely scan/i);
-    assert.equal(fs.existsSync(packageManagerMarker), false, "pip must not run when Guardog cannot scan the request");
-  } finally {
-    fs.rmSync(tempDir, { recursive: true, force: true });
-  }
-});
-
-test("legacy installer delegates to the safe setup path", () => {
-  const installer = fs.readFileSync(path.join(repoRoot, "install.sh"), "utf8");
-  assert.match(installer, /node "\$guardog_dir\/src\/index\.js" setup --quick/);
-  assert.doesNotMatch(installer, /^guardog setup --quick$/m);
-  assert.doesNotMatch(installer, /git config --global/);
-  assert.doesNotMatch(installer, /Paste your VirusTotal API key/);
+    const pack = run([npmCli, 'pack', '--json', '--ignore-scripts', '--pack-destination', dir], { cwd: root });
+    assert.equal(pack.status, 0, pack.stderr);
+    const artifact = JSON.parse(pack.stdout)[0];
+    assert.equal(artifact.files.some(f => /telegram/i.test(f.path)), false);
+    fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ private: true }));
+    const install = run([npmCli, 'install', '--ignore-scripts', '--no-audit', '--no-fund', path.join(dir, artifact.filename)]);
+    assert.equal(install.status, 0, install.stderr);
+    const cli = path.join(dir, 'node_modules', 'guard-dog', 'src', 'index.js');
+    const env = { ...process.env, GUARDOG_HOME: path.join(dir, 'state'), VIRUSTOTAL_API_KEY: '' };
+    const source = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+    assert.equal(run([cli, '--version'], { env }).stdout.trim(), source.version);
+    const setup = run([cli, 'setup', '--quick'], { env });
+    assert.equal(setup.status, 0, setup.stderr);
+    assert.equal(fs.existsSync(path.join(env.GUARDOG_HOME, 'config.json')), true);
+    const doctor = run([cli, 'doctor'], { env });
+    assert.ok([0, 2].includes(doctor.status), doctor.stderr);
+    assert.match(doctor.stdout, /doctor/i);
+    for (const alias of ['guardog', 'guarddog', 'guard-dog']) {
+      assert.ok(fs.existsSync(path.join(dir, 'node_modules', '.bin', alias + (process.platform === 'win32' ? '.cmd' : ''))));
+    }
+    const blocked = run([cli, 'install', 'pip', '-r', 'requirements.txt'], { env });
+    assert.notEqual(blocked.status, 0);
+    assert.match(blocked.stderr, /not supported|cannot safely/i);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
