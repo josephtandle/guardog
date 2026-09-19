@@ -1,10 +1,10 @@
-# Guard Dog 3.0
+# MyOS Guard Dog 4.0
 
 VirusTotal requests are paced within each process, including retries and refreshes.
 Separate processes or other software sharing the same API key can still exhaust its
 quota. Rate limits leave coverage incomplete; they never turn into a clean result.
 
-Guard Dog checks software packages before installation and rechecks your projects against current security information. Its command is `guardog`, with `guarddog` and `guard-dog` aliases. The official source is [josephtandle/guardog](https://github.com/josephtandle/guardog). Other projects with similar names are unrelated.
+MyOS Guard Dog checks software packages before installation and rechecks your projects against current security information. Its only supported command is `myos-guard-dog`. It is not affiliated with DataDog GuardDog or other similarly named packages. The official source is [josephtandle/myos-guard-dog](https://github.com/josephtandle/myos-guard-dog).
 
 ## Install with your AI assistant
 
@@ -13,11 +13,11 @@ Use the [installation prompt](GUARD_DOG_PROMPT.md). It guides your assistant thr
 For a terminal installation on macOS, Windows, or Linux, use Node 22 or newer (Node 24 LTS preferred):
 
 ```sh
-npm install -g --ignore-scripts github:josephtandle/guardog#v3.0.1
-guardog setup
-guardog test
-guardog scan "/your/project"
-guardog doctor --repair
+npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.0
+myos-guard-dog setup
+myos-guard-dog test
+myos-guard-dog scan "/your/project"
+myos-guard-dog doctor --repair
 ```
 
 On Windows, substitute a quoted Windows folder such as `"C:\Users\You\Projects"`. All Sorted users should use the matching module installer instead of creating a second installation.
@@ -27,8 +27,8 @@ State lives in `~/.guardog` or `%USERPROFILE%\.guardog`, independently of the in
 ## Check before installing
 
 ```sh
-guardog install lodash
-guardog install npm install express@5.1.0
+myos-guard-dog install lodash
+myos-guard-dog install npm install express@5.1.0
 ```
 
 The guarded npm installer resolves the full dependency tree in temporary staging with scripts disabled. It checks exact versions and public npm artifact hashes, then requires completed security checks before installing the approved lockfile. Lifecycle scripts remain disabled after installation. Packages needing build scripts require a separate review.
@@ -38,10 +38,10 @@ Direct npm or pip commands bypass Guard Dog. Guard Dog does not intercept all te
 ## Audit existing projects
 
 ```sh
-guardog scan "/your/project"
-guard-dog-scan "/your/project/package.json" --json
-guardog analyze node-ipc@10.1.1 npm
-guardog analyze requests@2.32.3 pypi
+myos-guard-dog scan "/your/project"
+myos-guard-dog-scan "/your/project/package.json" --json
+myos-guard-dog analyze node-ipc@10.1.1 npm
+myos-guard-dog analyze requests@2.32.3 pypi
 ```
 
 Project audits read exact npm lockfile or installed metadata versions, including transitive dependencies. npm lockfile versions 1, 2 and 3 and shrinkwrap files are supported. Installed metadata takes precedence where present. Results distinguish installed from locked versions. A missing or unsupported inventory is incomplete, never a request to check latest instead. Python and Ruby packages can be analyzed individually; automatic project inventory currently covers npm.

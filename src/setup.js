@@ -86,12 +86,12 @@ export function runQuickSetup() {
   };
   saveUserConfig(config);
 
-  console.log('\nGuardog quick setup complete.');
-  console.log('OSV needs no API key. Run guardog test to verify connectivity.');
+  console.log('\nMyOS Guard Dog quick setup complete.');
+  console.log('OSV needs no API key. Run myos-guard-dog test to verify connectivity.');
   console.log('No background job or global git hook was installed or changed.');
-  console.log('Add a VirusTotal key with guardog setup for malware coverage and guarded installs.');
-  console.log('Use guardog install for supported npm installs with lifecycle scripts disabled.');
-  console.log('Try it: `guardog analyze lodash npm`');
+  console.log('Add a VirusTotal key with myos-guard-dog setup for malware coverage and guarded installs.');
+  console.log('Use myos-guard-dog install for supported npm installs with lifecycle scripts disabled.');
+  console.log('Try it: `myos-guard-dog analyze lodash npm`');
   return config;
 }
 
@@ -101,7 +101,7 @@ export function installGitHook() {
   if (process.platform === 'win32') {
     return {
       ok: false,
-      message: 'Global git pre-commit hook install is skipped on Windows. Use guardog install before dependency installs.'
+      message: 'Global git pre-commit hook install is skipped on Windows. Use myos-guard-dog install before dependency installs.'
     };
   }
   if (!existsSync(hookSource)) {
@@ -149,7 +149,7 @@ export function removeGitHook() {
 export function installNightlySchedule(config = loadUserConfig(), options = {}) {
   ensureGuardogHome();
   const scanRoots = config.scanRoots?.length ? config.scanRoots : process.env.GUARDOG_WORKSPACE ? [resolve(process.env.GUARDOG_WORKSPACE)] : [];
-  if (!scanRoots.length) return { ok: false, message: 'Choose a scan root first: guardog setup, or set GUARDOG_WORKSPACE.' };
+  if (!scanRoots.length) return { ok: false, message: 'Choose a scan root first: myos-guard-dog setup, or set GUARDOG_WORKSPACE.' };
   if (!Array.isArray(scanRoots) || scanRoots.some(root => {
     try { return typeof root !== 'string' || !statSync(root).isDirectory(); } catch { return true; }
   })) return { ok: false, message: 'Every scan root must be an available directory before enabling nightly scans.' };
@@ -240,7 +240,7 @@ export async function runSetup(options = {}) {
   }
 
   console.log('\nGuardog setup complete.');
-  console.log('Try it: `guardog analyze lodash npm`');
+  console.log('Try it: `myos-guard-dog analyze lodash npm`');
   return { status: 'complete', config };
 }
 
@@ -262,7 +262,7 @@ export function printDoctor(options = {}) {
   for (const [label, value] of checks) {
     console.log(`${label}: ${value}`);
   }
-  console.log('\nInstall checks: guardog install <package> for supported npm installs. Unsupported installers stay blocked.');
+  console.log('\nInstall checks: myos-guard-dog install <package> for supported npm installs. Unsupported installers stay blocked.');
   for (const repair of health.repairs) console.log(`Repaired: ${repair}`);
   for (const issue of health.issues) console.log(`Attention: ${issue}`);
   return health;

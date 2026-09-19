@@ -5,14 +5,16 @@ Use [the installation prompt](GUARD_DOG_PROMPT.md) to have your assistant comple
 With Node 22 or newer installed:
 
 ```sh
-npm install -g --ignore-scripts github:josephtandle/guardog#v3.0.1
-guardog setup
-guardog test
-guardog scan "/your/project"
-guardog updates enable --workspace "/your/workspace" --time "02:30"
-guardog nightly
-guardog doctor --repair
+npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.0
+myos-guard-dog setup
+myos-guard-dog test
+myos-guard-dog scan "/your/project"
+myos-guard-dog updates enable --workspace "/your/workspace" --time "02:30"
+myos-guard-dog nightly
+myos-guard-dog doctor --repair
 ```
+
+`doctor --repair` is required after upgrading from a previous Guard Dog release. It preserves `~/.guardog` state and updates a previously enabled owned nightly runner to the current package.
 
 On Windows, use your actual folder, such as `"C:\Users\You\Projects"`. Keep the quotes on all platforms.
 

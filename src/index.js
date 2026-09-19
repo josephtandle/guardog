@@ -398,22 +398,22 @@ export class GuardDog {
 }
 
 function usage() {
-  console.log('Guardog - Package Security Scanner');
+  console.log('MyOS Guard Dog - Package Security Scanner');
   console.log('');
   console.log('Usage:');
-  console.log('  guardog --version                     - Print the installed version');
-  console.log('  guardog setup                         - Run first-time setup wizard');
-  console.log('  guardog setup --quick                 - Safe local setup with no background changes');
-  console.log('  guardog doctor [--repair] [--json]    - Check health and bounded local repairs');
-  console.log('  guardog test                          - Run system test');
-  console.log('  guardog analyze <pkg> [eco] [target]  - Analyze one package');
-  console.log('  guardog batch <json-file>             - Batch analyze packages');
-  console.log('  guardog install [npm] <package>       - Gate exact npm artifacts; scripts stay disabled');
-  console.log('  guardog scan <project> [--json]       - Audit exact installed or locked npm versions');
-  console.log('  guardog nightly                       - Repair local health and scan configured roots');
-  console.log('  guardog updates enable --workspace <folder> --time HH:MM');
-  console.log('  guardog updates disable|status       - Manage and verify the daily schedule');
-  console.log('  guardog hooks enable|disable|status   - Manage git dependency hook');
+  console.log('  myos-guard-dog --version                     - Print the installed version');
+  console.log('  myos-guard-dog setup                         - Run first-time setup wizard');
+  console.log('  myos-guard-dog setup --quick                 - Safe local setup with no background changes');
+  console.log('  myos-guard-dog doctor [--repair] [--json]    - Check health and bounded local repairs');
+  console.log('  myos-guard-dog test                          - Run system test');
+  console.log('  myos-guard-dog analyze <pkg> [eco] [target]  - Analyze one package');
+  console.log('  myos-guard-dog batch <json-file>             - Batch analyze packages');
+  console.log('  myos-guard-dog install [npm] <package>       - Gate exact npm artifacts; scripts stay disabled');
+  console.log('  myos-guard-dog scan <project> [--json]       - Audit exact installed or locked npm versions');
+  console.log('  myos-guard-dog nightly                       - Repair local health and scan configured roots');
+  console.log('  myos-guard-dog updates enable --workspace <folder> --time HH:MM');
+  console.log('  myos-guard-dog updates disable|status       - Manage and verify the daily schedule');
+  console.log('  myos-guard-dog hooks enable|disable|status   - Manage git dependency hook');
 }
 
 function updatesCommand(action, args = []) {

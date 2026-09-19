@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.0
+
+- Rename the public package and command to `myos-guard-dog` to avoid collisions with unrelated GuardDog and Guardog tools. Fresh installs no longer expose ambiguous command aliases.
+
 ## 3.0.1
 
 - Mark local and workspace-linked npm dependencies as incomplete audit coverage instead of treating them as verified registry packages.

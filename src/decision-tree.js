@@ -82,7 +82,7 @@ export class DecisionTree {
     }
 
     if (incomplete) {
-      decision.notes.push('Protection is incomplete. Resolve missing checks with guardog doctor --repair and guardog test.');
+      decision.notes.push('Protection is incomplete. Resolve missing checks with myos-guard-dog doctor --repair and myos-guard-dog test.');
       if (decision.action === 'SILENT') decision.threat = 'INCOMPLETE';
     }
     decision.installAllowed = !incomplete && decision.action === 'SILENT'

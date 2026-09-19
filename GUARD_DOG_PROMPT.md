@@ -6,11 +6,11 @@ Copy the prompt below into your AI assistant. It needs access to your computer's
 
 Install or upgrade Guard Dog and prove the protection is working.
 
-Use this exact project: https://github.com/josephtandle/guardog. Guard Dog is the product name. `guardog`, `guarddog`, and `guard-dog` are commands for the same product. Do not substitute another project called GuardDog or invent a replacement implementation.
+Use this exact project: https://github.com/josephtandle/myos-guard-dog. MyOS Guard Dog is the product name and `myos-guard-dog` is its only supported command. It is not DataDog GuardDog or any similarly named package. Do not substitute another project or invent a replacement implementation.
 
 1. Detect my operating system, shell, Node version, existing installation, and project folder. Read the release instructions. Guard Dog requires Node 22 or newer; prefer Node 24 LTS for a new installation. Preserve settings and credentials. Explain decisions in plain English.
 
-2. For the standalone release, install the official pinned tag with `npm install -g --ignore-scripts github:josephtandle/guardog#v3.0.1`. For All Sorted, use its matching module installer instead of creating a duplicate installation. Verify the executable location and `guardog --version`. If permissions or PATH fail, diagnose the actual error, use a user-owned install directory, and retry at most twice. Do not run arbitrary downloaded repair scripts or use administrator privileges automatically.
+2. For the standalone release, install the official pinned tag with `npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.0`. Run `myos-guard-dog doctor --repair` immediately after installation so any previously enabled owned nightly runner is updated to this release. Verify `myos-guard-dog --version`. Existing `~/.guardog` state is preserved. Do not use `guarddog`, `guardog`, or `guard-dog`: they are ambiguous external names.
 
 3. Run `guardog setup --quick`, then help me configure VirusTotal locally using `guardog setup`. Never ask for an API key in chat, print it, or include it in a report. Without a key, vulnerability audits still run, but malware coverage is incomplete and guarded installation stays blocked. A stored key is not proof it works: run `guardog test` and report the actual authentication and service results.
 

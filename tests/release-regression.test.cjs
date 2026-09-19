@@ -20,7 +20,7 @@ test('packed release installs and runs without workspace helpers', () => {
     fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ private: true }));
     const install = run([npmCli, 'install', '--ignore-scripts', '--no-audit', '--no-fund', path.join(dir, artifact.filename)]);
     assert.equal(install.status, 0, install.stderr);
-    const cli = path.join(dir, 'node_modules', 'guard-dog', 'src', 'index.js');
+    const cli = path.join(dir, 'node_modules', 'myos-guard-dog', 'src', 'index.js');
     const env = { ...process.env, GUARDOG_HOME: path.join(dir, 'state'), VIRUSTOTAL_API_KEY: '' };
     const source = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
     assert.equal(run([cli, '--version'], { env }).stdout.trim(), source.version);
@@ -30,8 +30,11 @@ test('packed release installs and runs without workspace helpers', () => {
     const doctor = run([cli, 'doctor'], { env });
     assert.ok([0, 2].includes(doctor.status), doctor.stderr);
     assert.match(doctor.stdout, /doctor/i);
-    for (const alias of ['guardog', 'guarddog', 'guard-dog']) {
+    for (const alias of ['myos-guard-dog', 'myos-guard-dog-scan']) {
       assert.ok(fs.existsSync(path.join(dir, 'node_modules', '.bin', alias + (process.platform === 'win32' ? '.cmd' : ''))));
+    }
+    for (const ambiguous of ['guardog', 'guarddog', 'guard-dog', 'guard-dog-scan']) {
+      assert.equal(fs.existsSync(path.join(dir, 'node_modules', '.bin', ambiguous + (process.platform === 'win32' ? '.cmd' : ''))), false);
     }
     const blocked = run([cli, 'install', 'pip', '-r', 'requirements.txt'], { env });
     assert.notEqual(blocked.status, 0);

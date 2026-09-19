@@ -14,7 +14,7 @@ export function checkHealth(options = {}) {
     if (!config || Array.isArray(config) || typeof config !== 'object') throw new Error('Expected a config object.');
   } catch (error) {
     config = {};
-    issues.push(existsSync(configPath) ? 'Config is invalid; restore it or run setup after reviewing the file.' : 'Setup has not been completed. Run guardog setup --quick.');
+    issues.push(existsSync(configPath) ? 'Config is invalid; restore it or run setup after reviewing the file.' : 'Setup has not been completed. Run myos-guard-dog setup --quick.');
   }
   if (options.repair) {
     try {
@@ -66,7 +66,7 @@ export function checkHealth(options = {}) {
   catch { /* No receipt is reported explicitly below. */ }
   // A running scan evaluates its current preflight, not the receipt it will replace.
   if (config.nightlyUpdates === true && options.checkLastRun !== false) {
-    if (!lastRun) issues.push('No completed nightly-run receipt yet. Run guardog nightly now.');
+    if (!lastRun) issues.push('No completed nightly-run receipt yet. Run myos-guard-dog nightly now.');
     else {
       const timestamp = Date.parse(lastRun.finishedAt);
       if (!Number.isFinite(timestamp) || Date.now() - timestamp > 36 * 3600000) issues.push('Latest nightly run is missing or older than 36 hours.');
