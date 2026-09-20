@@ -1,17 +1,17 @@
 {
-  "name": "guard-dog",
-  "version": "2.0.0",
+  "name": "myos-guard-dog",
+  "version": "4.0.2",
   "description": "Security agent for scanning packages and detecting malicious code",
   "main": "src/index.js",
   "type": "module",
   "bin": {
-    "guard-dog": "src/index.js",
-    "guardog": "src/index.js",
-    "guard-dog-scan": "bin/scan-deps.js"
+    "myos-guard-dog": "src/index.js",
+    "myos-guard-dog-scan": "bin/scan-deps.js"
   },
   "scripts": {
     "start": "node src/index.js",
-    "test": "node tests/test.js && node --test tests/*.test.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "test:live": "node tests/test.js",
     "scan": "node bin/scan-deps.js",
     "setup": "node src/index.js setup",
     "cron": "node bin/nightly-scan.js"
@@ -19,11 +19,12 @@
   "files": [
     ".env.example",
     "README.md",
+    "QUICKSTART.md",
+    "GUARD_DOG_PROMPT.md",
     "autonomizer.json",
     "LICENSE",
     "SECURITY.md",
     "MANIFEST.md",
-    "guardog.md",
     "config/config.json",
     "config/trusted-providers.json",
     "examples/batch-example.json",
@@ -34,11 +35,7 @@
     "bin/run-cso.sh"
   ],
   "engines": {
-    "node": ">=18"
-  },
-  "dependencies": {
-    "dotenv": "^17.4.2",
-    "node-fetch": "^3.3.2"
+    "node": "24.x"
   },
   "keywords": [
     "security",
@@ -49,12 +46,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/josephtandle/guardog.git"
+    "url": "git+https://github.com/josephtandle/myos-guard-dog.git"
   },
   "bugs": {
-    "url": "https://github.com/josephtandle/guardog/issues"
+    "url": "https://github.com/josephtandle/myos-guard-dog/issues"
   },
-  "homepage": "https://github.com/josephtandle/guardog#readme",
+  "homepage": "https://github.com/josephtandle/myos-guard-dog#readme",
   "publishConfig": {
     "access": "public"
   }

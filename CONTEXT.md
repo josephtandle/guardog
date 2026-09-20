@@ -1,5 +1,5 @@
-# Guardog: Project Context
-> Last updated: 2026-08-26
+# MyOS Guard Dog: Project Context
+> Last updated: 2026-09-21
 
 ## What It Is
 
@@ -9,18 +9,18 @@ Works out of the box with no API keys. VirusTotal is optional and subject to Vir
 
 ## URLs / Access
 
-- GitHub: https://github.com/josephtandle/guardog
-- Install: `npm install -g github:josephtandle/guardog && guardog setup --quick`
+- GitHub: https://github.com/josephtandle/myos-guard-dog
+- Install: `npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.2 && myos-guard-dog setup --quick`
 
 ## App Location
 
 - Agent source (live): `~/.myos/workspace/agents/guard-dog/`
-- Default install path for students: `~/guardog/`
-- Own git repo: yes (initialized 2026-04-15, pushed to `josephtandle/guardog`)
+- State path for existing and new users: `~/.guardog/`
+- Own git repo: yes, `josephtandle/myos-guard-dog`
 
 ## Tech Stack
 
-- Node.js 18+ (ESM), built-in fetch, dotenv
+- Node.js 24 LTS, pinned with `.nvmrc`, `.node-version` and `engines.node` (ESM, built-in fetch, zero runtime dependencies)
 - No build step. No server. CLI tool only.
 - Optional Claude Code skill: `guardog.md`
 
@@ -33,9 +33,9 @@ Works out of the box with no API keys. VirusTotal is optional and subject to Vir
 ## Key Endpoints / Commands
 
 ```bash
-guardog analyze <package> [npm|pypi]
-guardog batch <packages.json>
-guardog test
+myos-guard-dog analyze <package> [npm|pypi]
+myos-guard-dog batch <packages.json>
+myos-guard-dog test
 ```
 
 The optional `guardog.md` Claude Code skill is included in the repository. The installer does not change Claude Code settings or skills automatically.

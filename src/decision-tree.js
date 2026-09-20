@@ -25,6 +25,7 @@ export class DecisionTree {
       confidence: 100,
       reasons: [],
       notes: [],
+      installAllowed: false,
       details: {
         scan: scanResults,
         reputation: reputationData
@@ -35,13 +36,8 @@ export class DecisionTree {
 
     if (isTrusted) {
       decision.notes.push('Trusted provider - reputation heuristics skipped');
-    } else if (reputationData?.signals?.includes('PACKAGE_NOT_FOUND')) {
-      decision.action = 'WHINE';
-      decision.threat = 'NOT_FOUND';
-      decision.confidence = 100;
-      decision.reasons.push('❌ Package does not exist in the registry - nothing could be checked. Verify the spelling (possible typosquat).');
-      return decision;
     }
+    const notFound = reputationData?.signals?.includes('PACKAGE_NOT_FOUND');
 
     // Evaluate VirusTotal results
     const vtScore = this.evaluateVirusTotal(scanResults, decision.reasons, vtAttempted);
@@ -59,10 +55,22 @@ export class DecisionTree {
     const totalScore = vtScore + repScore + cveScore + patternScore;
 
     // Determine action based on score
-    if (totalScore >= 100) {
+    const confirmedDanger = (scanResults.maliciousVotes || 0) >= (this.thresholds.maliciousVotes || 3)
+      || (cveResults?.severity?.critical || 0) > 0
+      || cveResults?.vulnerabilities?.some(v => /^MAL-/.test(v.id) || /malicious package|malware/i.test(v.summary || ''));
+    const incomplete = cveResults?.status !== 'complete'
+      || !scanResults.success || !scanResults.found || scanResults.stale === true
+      || !reputationData || Boolean(reputationData.error) || notFound
+      || reputationData.signals?.includes('GITHUB_CHECK_FAILED');
+    decision.coverage = incomplete ? 'incomplete' : 'complete';
+    if (totalScore >= 100 || confirmedDanger) {
       decision.action = 'BARK';
       decision.threat = 'DANGER';
       decision.confidence = Math.min(totalScore, 100);
+    } else if (notFound) {
+      decision.action = 'WHINE';
+      decision.threat = 'NOT_FOUND';
+      decision.reasons.push('Package is unavailable in the registry. Installed versions may still have known advisories.');
     } else if (totalScore >= 50) {
       decision.action = 'WHINE';
       decision.threat = 'SUSPICIOUS';
@@ -72,6 +80,13 @@ export class DecisionTree {
       decision.threat = decision.reasons.length > 0 ? 'UNCONFIRMED' : 'SAFE';
       decision.confidence = 100 - totalScore;
     }
+
+    if (incomplete) {
+      decision.notes.push('Protection is incomplete. Resolve missing checks with myos-guard-dog doctor --repair and myos-guard-dog test.');
+      if (decision.action === 'SILENT') decision.threat = 'INCOMPLETE';
+    }
+    decision.installAllowed = !incomplete && decision.action === 'SILENT'
+      && !cveResults?.found && !(scanResults.maliciousVotes > 0) && !(scanResults.suspiciousVotes > 0);
 
     return decision;
   }
@@ -179,8 +194,8 @@ export class DecisionTree {
     }
 
     if (signals.includes('SECURITY_COMPLAINTS')) {
-      score += 50;
-      reasons.push('🚨 Security issues reported on GitHub');
+      score += 15;
+      reasons.push('Unverified open malware reports on GitHub, requires corroboration');
     }
 
     if (signals.includes('DISABLED_REPO')) {
@@ -322,7 +337,7 @@ export class DecisionTree {
       SILENT: '✅'
     };
 
-    const icon = decision.threat === 'UNCONFIRMED' ? 'ℹ️' : (emoji[decision.action] || '❓');
+    const icon = ['UNCONFIRMED', 'INCOMPLETE'].includes(decision.threat) ? 'ℹ️' : (emoji[decision.action] || '❓');
 
     let output = `${icon} ${decision.action}: ${decision.threat}\n`;
     output += `Confidence: ${decision.confidence}%\n\n`;

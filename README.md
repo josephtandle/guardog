@@ -1,117 +1,89 @@
-# Guardog
+# MyOS Guard Dog 4.0
 
-Guardog checks packages before you trust them.
+VirusTotal requests are paced within each process, including retries and refreshes.
+Separate processes or other software sharing the same API key can still exhaust its
+quota. Rate limits leave coverage incomplete; they never turn into a clean result.
 
-It looks for known vulnerabilities, weak reputation signals, suspicious metadata, risky code patterns, and optional VirusTotal findings. It works with npm and PyPI. It does not use AI tokens.
+MyOS Guard Dog checks software packages before installation and rechecks your projects against current security information. Its only supported command is `myos-guard-dog`. It is not affiliated with DataDog GuardDog or other similarly named packages. The official source is [josephtandle/myos-guard-dog](https://github.com/josephtandle/myos-guard-dog).
 
-## The easy install
+## Install with your AI assistant
 
-Requires Node.js 18 or newer.
+Use the [installation prompt](GUARD_DOG_PROMPT.md). It guides your assistant through setup, a first audit, VirusTotal verification, scheduling, repairs, and a completion report.
 
-```bash
-npm install -g github:josephtandle/guardog
-guardog setup --quick
-guardog doctor
-guardog analyze lodash npm
+For a terminal installation on macOS, Windows, or Linux, use Node 24 LTS. Other major versions are rejected so local installs, CI and support all exercise the same runtime:
+
+```sh
+npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.2
+myos-guard-dog setup
+myos-guard-dog test
+myos-guard-dog scan "/your/project"
+myos-guard-dog doctor --repair
 ```
 
-That is the safe path. Quick setup creates a local state folder. It does not install or change a background job. It does not change your global git hooks. It does not intercept normal `npm install` or `pip install` commands, and it does not send messages anywhere. Use `guardog install` when you want the pre-install scan.
+On Windows, substitute a quoted Windows folder such as `"C:\Users\You\Projects"`. All Sorted users should use the matching module installer instead of creating a second installation.
 
-Guardog stores its local state in `~/.guardog` on macOS and Linux, or `%USERPROFILE%\.guardog` on Windows.
+State lives in `~/.guardog` or `%USERPROFILE%\.guardog`, independently of the installation directory. `GUARDOG_HOME` selects another state folder. Upgrades preserve this state.
 
-## What works immediately
+## Check before installing
 
-OSV scanning is ready as soon as Guardog is installed. It uses the public OSV.dev API and needs no account or API key. OSV currently documents no API rate limit.
-
-```bash
-guardog analyze lodash npm
-guardog analyze requests pypi
+```sh
+myos-guard-dog install lodash
+myos-guard-dog install npm install express@5.1.0
 ```
 
-Craig Soles' OSV-Scan guide inspired the simpler npm and pip install flow in version 1.2.0. Guardog keeps the useful part, a direct OSV check, while running it before the package manager instead of after.
+The guarded npm installer resolves the full dependency tree in temporary staging with scripts disabled. It checks exact versions and public npm artifact hashes, then requires completed security checks before installing the approved lockfile. Lifecycle scripts remain disabled after installation. Packages needing build scripts require a separate review.
 
-```bash
-guardog install npm install lodash@4.17.21
-guardog install pip install requests==2.31.0
+Direct npm or pip commands bypass Guard Dog. Guard Dog does not intercept all terminal activity. Unsupported guarded installations, including pip, custom registries, workspaces and local/Git sources, stop with an explanation. They are not silently passed through.
+
+## Audit existing projects
+
+```sh
+myos-guard-dog scan "/your/project"
+myos-guard-dog-scan "/your/project/package.json" --json
+myos-guard-dog analyze node-ipc@10.1.1 npm
+myos-guard-dog analyze requests@2.32.3 pypi
 ```
 
-The original npm shorthand still works:
+Project audits read exact npm lockfile or installed metadata versions, including transitive dependencies. npm lockfile versions 1, 2 and 3 and shrinkwrap files are supported. Installed metadata takes precedence where present. Results distinguish installed from locked versions. A missing or unsupported inventory is incomplete, never a request to check latest instead. Python and Ruby packages can be analyzed individually; automatic project inventory currently covers npm.
 
-```bash
-guardog install express
+## VirusTotal and coverage
+
+OSV vulnerability checks need no API key. VirusTotal malware checks require your own key, entered locally with `myos-guard-dog setup` or supplied through `VIRUSTOTAL_API_KEY`. GitHub metadata requests can use `GITHUB_API_TOKEN` to reduce rate limits. Never paste keys into chat or bug reports.
+
+VirusTotal checks SHA-256 reports for the exact package artifact. Old known reports request reanalysis; that request does not count as a fresh result. Reports with no completed engine verdicts, unknown hashes, old results, authentication failures and rate limits remain incomplete. No private files are uploaded. An explicitly supplied URL checks URL reputation, not its downloaded file contents.
+
+Guarded installs require complete OSV and VirusTotal checks and no disqualifying findings. Without a VirusTotal key you can still inspect vulnerability findings, but guarded installs remain blocked. The default freshness limit for stored VirusTotal reports is 24 hours. API usage and access depend on your VirusTotal plan; see its [official API documentation](https://docs.virustotal.com/reference/overview).
+
+| Result | Meaning |
+| --- | --- |
+| BARK | Serious evidence found; installation blocked. |
+| WHINE | Warning signals need review; installation blocked. |
+| SILENT | The completed checks did not reach a warning threshold. Read coverage too. |
+| INCOMPLETE | Required evidence is missing. It is not a safe result. |
+
+Audit exit codes are 0 for completed coverage, 1 for serious findings, and 2 for incomplete coverage or operational failure. A completed audit can still contain warnings or lower-severity advisories. Guarded installation has the stricter approval policy.
+
+## Daily scans and self-repair
+
+```sh
+myos-guard-dog updates enable --workspace "/your/workspace" --time "02:30"
+myos-guard-dog updates status
+myos-guard-dog nightly
+myos-guard-dog doctor --repair
 ```
 
-Guardog scans the named packages first. A `BARK` verdict blocks the guarded install. `SILENT` and `WHINE` continue to the package manager, with the warning printed for review.
+Choose the folders and local run time explicitly. Scheduling uses cron on Mac/Linux and Task Scheduler on Windows, with registration readback. A scan receipt records the last run, project and dependency counts, danger and coverage gaps. An empty run is not reported as successful protection.
 
-Guardog fails closed when it cannot identify package names, including pip requirement files, URLs, and local paths. Scan those dependency files separately before installing them.
+Each daily run checks its health first. Safe repairs restore missing state directories, restrict credential-file permissions on POSIX systems, and restore an owned runner or previously enabled missing schedule. Unknown files and jobs are preserved. Overlap and run-time limits prevent endless repair loops. Service retries are bounded. Credentials, unsupported inventories and persistent service outages remain visible for action. Repairs never weaken checks or alter project dependencies.
 
-## VirusTotal
+Setup and nightly runs also maintain `data/resilience-state.json`. This local receipt tracks verified cycles, successful repair counts, healthy streaks and recurring issue categories. A category that survives two cycles is escalated with a concrete next action; a verified healthy cycle clears the active recurrence. It stores categories rather than machine-specific paths or credentials. The loop never rewrites Guard Dog code, changes threat thresholds, selects scan roots, replaces customized jobs or installs project dependencies.
 
-VirusTotal is optional. When configured with an API key, Guardog automatically derives the SHA-256 target hash from package metadata and runs VirusTotal scans. VirusTotal also stays available as an optional second opinion for a URL or file hash. Without an API key, Guardog still runs OSV lookups, reputation checks, pattern checks, and threat-intel cache checks.
+The computer must be available for its scheduler. Use `myos-guard-dog updates disable` to remove the owned schedule. `myos-guard-dog doctor --json` provides machine-readable health. Optional Git hooks are secondary commit checks, not pre-install protection.
 
-Run the guided setup when you want to add a key:
+## Scope and verification
 
-```bash
-guardog setup
-```
+Guard Dog protects the package workflow. It is not a replacement for operating-system antivirus and does not watch every file or process. Metadata pattern checks are not a full package-source review. No scan guarantees software is harmless.
 
-You can get a personal API key from your VirusTotal Community account settings. Guardog saves it to your local Guardog state folder with owner-only file permissions. Keep the key private. If a key is pasted into a chat, terminal transcript, or public issue, rotate it before using it again.
+`npm test` runs regression and real packed-install tests. CI runs these on Windows, macOS and Linux with Node 24. Scheduler tests exercise platform command construction and readback without installing real tasks. `npm run test:live` separately exercises public services and may consume API quota. See the release verification record for actual platform results.
 
-VirusTotal's public API has usage restrictions, including restrictions on commercial products and services. Check the [official VirusTotal API terms and getting-started guide](https://docs.virustotal.com/reference/intro/getting-started) before using it in a business workflow.
-
-To include VirusTotal in a scan, provide a URL or hash after the package and ecosystem:
-
-```bash
-guardog analyze example-package npm https://example.com/package.tgz
-```
-
-## GitHub API Configuration
-
-Without `GITHUB_API_TOKEN`, the unauthenticated GitHub API allows only 60 requests per hour. When rate limits or network errors occur, Guarddog reports 'GitHub could not be checked' rather than treating the missing data as clean. Setting `GITHUB_API_TOKEN` raises the limit to 5000 requests per hour. Setting `GITHUB_API_TOKEN` in your environment or `.env` file is recommended.
-
-## Verdicts
-
-| Verdict | Meaning |
-|---------|---------|
-| SILENT: SAFE | Safe to install (clean result, no findings) |
-| SILENT: UNCONFIRMED | Signals found below warning threshold: review reasons before installing |
-| WHINE: SUSPICIOUS | Suspicious: review before installing |
-| WHINE: NOT_FOUND | Package does not exist in registry: verify spelling for typosquats |
-| BARK: DANGER | Dangerous: do not install |
-
-## What Guardog checks
-
-1. Known advisories through [OSV.dev](https://google.github.io/osv.dev/api/)
-2. Package reputation from npm, PyPI, RubyGems, and GitHub metadata
-3. Code pattern analysis for risky package metadata and code snippets
-4. Automatic VirusTotal scans when configured with an API key (or explicit URL/hash target)
-5. Cached threat-intelligence findings when available
-
-## Optional automation
-
-Nothing runs in the background by default. If you want more protection, the full setup can configure it explicitly:
-
-```bash
-guardog setup
-guardog updates enable
-guardog hooks enable
-```
-
-Nightly scans use cron on macOS and Linux, and Task Scheduler on Windows. Global git hooks are skipped on Windows because the portable path is `guardog install`.
-
-To scan a complete dependency file:
-
-```bash
-guard-dog-scan ./package.json
-guardog batch ./examples/batch-example.json
-```
-
-## Security and privacy
-
-Guardog has no external notification integration. Runtime history and secrets stay in the local Guardog state folder. Do not include keys, tokens, `.env` files, or unredacted scan logs in bug reports.
-
-Report vulnerabilities privately through [GitHub Security Advisories](https://github.com/josephtandle/guardog/security/advisories/new).
-
-## License
-
-MIT
+Report security issues through [GitHub Security Advisories](https://github.com/josephtandle/myos-guard-dog/security/advisories/new). License: MIT.

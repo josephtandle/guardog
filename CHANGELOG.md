@@ -1,5 +1,46 @@
 # Changelog
 
+## 4.0.2
+
+- Make the Git hook scan staged dependency metadata, including lockfile-only, overrides and workspace resolution changes, while skipping scripts-only manifest edits.
+- Distinguish confirmed danger from incomplete coverage and keep changed dependencies fail-closed.
+- Preserve customized scheduler entries during enable, repair and disable, while repairing the owned runner independently.
+- Add bounded install and nightly resilience cycles with repair readback, recurrence tracking and privacy-safe next actions.
+- Standardize the public repository, package and command identity as `josephtandle/myos-guard-dog` and `myos-guard-dog`.
+- Pin development, CI, installation and support to Node 24 LTS, rejecting unverified older and newer majors before installation.
+
+## 4.0.1
+
+- Add a persisted cross-process VirusTotal daily request budget of 400 calls, preserving 100 calls of public-API headroom for manual checks.
+- Treat VirusTotal quota responses as a hard stop, with no retry after a 429 response.
+- Stop nightly scans once VirusTotal quota coverage is exhausted, and route the legacy macOS launcher through the same protected nightly runner.
+
+## 4.0.0
+
+- Rename the public package and command to `myos-guard-dog` to avoid collisions with unrelated GuardDog and Guardog tools. Fresh installs no longer expose ambiguous command aliases.
+
+## 3.0.1
+
+- Mark local and workspace-linked npm dependencies as incomplete audit coverage instead of treating them as verified registry packages.
+- Build the approved dependency tree in project-local staging and promote it only after a successful `npm ci`, preserving the live manifest, lockfile and dependency tree when staging fails.
+
+## 3.0.0
+
+- Audit exact installed and locked npm versions, including transitive dependencies.
+- Keep registry and OSV failures distinct from completed clean checks.
+- Use package creation dates for new-package signals and reduce unverified complaint noise.
+- Block confirmed malware independently of reputation allowlists.
+- Gate npm installation on exact-version artifact identity, integrity and completed checks.
+- Disable lifecycle scripts during dependency resolution and installation.
+- Distinguish fresh VirusTotal reports, unknown hashes, stale reports and failed checks.
+- Add verified cross-platform scheduling, explicit scan roots and bounded self-repair.
+- Record daily repairs, coverage gaps and scan findings without claiming empty scans succeeded.
+- Preserve malformed settings, hide terminal key entry and report incomplete setup honestly.
+- Add participant install instructions, command aliases and cross-platform CI.
+
+Guard Dog is package-workflow protection, not a replacement for OS antivirus.
+Supported guarded installation and project inventory are npm-only in this release.
+
 ## 2.0.0 (2026-08-25)
 
 Security capability and fail-safe behavior update based on external security audit, 2026-08-25:
@@ -14,4 +55,3 @@ Security capability and fail-safe behavior update based on external security aud
 - Fix 8: Split decision notes from risk reasons so trusted provider notifications do not trigger UNCONFIRMED threat state on safe packages.
 - Fix 9: Removed dead, unpatched duplicate module tree in src/alerts, src/core, and src/scanners.
 - Fix 10: Discriminated GitHub API lookup failures to emit GITHUB_CHECK_FAILED and score 25 (UNCONFIRMED) instead of treating API rate limiting or errors as clean repository signals (found during verification of audit wave).
-

@@ -14,7 +14,7 @@ export class ReputationChecker {
    * @param {string} ecosystem - 'npm' or 'pypi'
    * @returns {Promise<Object>} Reputation data
    */
-  async checkReputation(packageName, ecosystem = 'npm') {
+  async checkReputation(packageName, ecosystem = 'npm', version = null) {
     const results = {
       package: packageName,
       ecosystem,
@@ -26,9 +26,9 @@ export class ReputationChecker {
     try {
       // Check package registry
       if (ecosystem === 'npm') {
-        results.registry = await this.checkNpmRegistry(packageName);
+        results.registry = await this.checkNpmRegistry(packageName, version);
       } else if (ecosystem === 'pypi') {
-        results.registry = await this.checkPyPiRegistry(packageName);
+        results.registry = await this.checkPyPiRegistry(packageName, version);
       } else if (ecosystem === 'rubygems') {
         results.registry = await this.checkRubyGemsRegistry(packageName);
       }
@@ -52,7 +52,7 @@ export class ReputationChecker {
    * @param {string} packageName - Package name
    * @returns {Promise<Object>} npm metadata
    */
-  async checkNpmRegistry(packageName) {
+  async checkNpmRegistry(packageName, version = null) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.config.npm.timeoutMs);
 
@@ -63,12 +63,14 @@ export class ReputationChecker {
       );
 
       if (!response.ok) {
-        return null;
+        if (response.status === 404) return null;
+        throw new Error(`npm registry unavailable: HTTP ${response.status}`);
       }
 
       const data = await response.json();
-      const latestVersion = data['dist-tags']?.latest;
+      const latestVersion = version || data['dist-tags']?.latest;
       const versionData = data.versions?.[latestVersion];
+      if (!versionData) throw new Error(`Requested version could not be resolved: ${latestVersion}`);
 
       // Fetch weekly downloads from npm downloads API
       let weeklyDownloads = null;
@@ -94,6 +96,7 @@ export class ReputationChecker {
         description: data.description,
         downloads: data.downloads?.total,
         weeklyDownloads,
+        createdAt: data.time?.created || null,
         publishDate: versionData?.time || data.time?.[latestVersion],
         author: data.author?.name || versionData?.author?.name,
         maintainers: data.maintainers?.length || 0,
@@ -114,18 +117,19 @@ export class ReputationChecker {
    * @param {string} packageName - Package name
    * @returns {Promise<Object>} PyPI metadata
    */
-  async checkPyPiRegistry(packageName) {
+  async checkPyPiRegistry(packageName, version = null) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.config.pypi.timeoutMs);
 
     try {
       const response = await fetch(
-        `${this.config.pypi.apiUrl}/${encodeURIComponent(packageName)}/json`,
+        `${this.config.pypi.apiUrl}/${encodeURIComponent(packageName)}${version ? '/' + encodeURIComponent(version) : ''}/json`,
         { signal: controller.signal }
       );
 
       if (!response.ok) {
-        return null;
+        if (response.status === 404) return null;
+        throw new Error(`PyPI unavailable: HTTP ${response.status}`);
       }
 
       const data = await response.json();
@@ -244,11 +248,12 @@ export class ReputationChecker {
 
       const data = await response.json();
 
-      // Check for issues mentioning "malware", "virus", "security"
-      let issuesData = { total_count: 0 };
+      // Unverified open reports are weak evidence, not a malware verdict.
+      let issuesData = { total_count: null };
       try {
+        const query = `repo:${owner}/${repoName} is:issue is:open malware in:title`;
         const issuesResponse = await fetch(
-          `${this.config.github.apiUrl}/search/issues?q=repo:${owner}/${repoName}+malware+OR+virus+OR+security+OR+compromised`,
+          `${this.config.github.apiUrl}/search/issues?q=${encodeURIComponent(query)}`,
           { signal: controller.signal, headers }
         );
         if (issuesResponse.ok) {
@@ -326,9 +331,9 @@ export class ReputationChecker {
     }
 
     // Check recent publication (typosquatting risk)
-    if (registry.publishDate) {
-      const daysSincePublish = (Date.now() - new Date(registry.publishDate)) / (1000 * 60 * 60 * 24);
-      if (daysSincePublish < 30) {
+    if (registry.createdAt) {
+      const daysSincePublish = (Date.now() - new Date(registry.createdAt)) / (1000 * 60 * 60 * 24);
+      if (daysSincePublish >= 0 && daysSincePublish < 30) {
         signals.push('NEWLY_PUBLISHED');
       }
     }
@@ -349,6 +354,7 @@ export class ReputationChecker {
         if (github.securityIssues > 0) {
           signals.push('SECURITY_COMPLAINTS');
         }
+        if (github.securityIssues === null) signals.push('GITHUB_CHECK_FAILED');
         if (github.archived) {
           signals.push('ARCHIVED_REPO');
         }

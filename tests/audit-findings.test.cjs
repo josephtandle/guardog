@@ -61,7 +61,7 @@ test('T3: updateSeverityCounts with unrecognized severity increments counts.medi
   assert.equal(counts.medium, 1);
 });
 
-test('T4: evaluateReputation with SECURITY_COMPLAINTS returns >= 50', async () => {
+test('T4: unverified SECURITY_COMPLAINTS requires corroboration', async () => {
   const { DecisionTree } = await import('../src/decision-tree.js');
   const dt = new DecisionTree(
     { decisionThresholds: { maliciousVotes: 5, suspiciousVotes: 3 } },
@@ -69,7 +69,7 @@ test('T4: evaluateReputation with SECURITY_COMPLAINTS returns >= 50', async () =
   );
   const reasons = [];
   const score = dt.evaluateReputation({ signals: ['SECURITY_COMPLAINTS'] }, reasons);
-  assert.ok(score >= 50, `Expected score >= 50, got ${score}`);
+  assert.ok(score > 0 && score < 50, `Expected weak evidence below warning threshold, got ${score}`);
 });
 
 test('T5: evaluate returning SILENT with reasons sets UNCONFIRMED and formatDecision omits green check', async () => {
@@ -80,9 +80,9 @@ test('T5: evaluate returning SILENT with reasons sets UNCONFIRMED and formatDeci
   );
   const scanResults = { success: true, found: false };
   const reputationData = { signals: ['DEPRECATED'] };
-  const decision = dt.evaluate(scanResults, reputationData, 'untrusted-pkg', null, null, false);
+  const decision = dt.evaluate(scanResults, reputationData, 'untrusted-pkg', { status: 'complete', found: false }, null, false);
   assert.equal(decision.action, 'SILENT');
-  assert.equal(decision.threat, 'UNCONFIRMED');
+  assert.equal(decision.threat, 'INCOMPLETE');
   const formatted = dt.formatDecision(decision);
   assert.ok(!formatted.includes('✅'), 'Formatted output should not contain ✅');
   assert.ok(formatted.includes('ℹ️'), 'Formatted output should contain ℹ️');
@@ -129,7 +129,7 @@ test('T9: evaluate() for a trusted provider with NO risk signals returns threat 
     { decisionThresholds: { maliciousVotes: 5, suspiciousVotes: 3 } },
     { trustedProviders: ['lodash'], trustedNamespaces: [], trustedScopes: {} }
   );
-  const decision = dt.evaluate({ success: true, found: true, maliciousVotes: 0 }, { signals: [] }, 'lodash');
+  const decision = dt.evaluate({ success: true, found: true, maliciousVotes: 0 }, { signals: [] }, 'lodash', { status: 'complete', found: false });
   assert.equal(decision.threat, 'SAFE');
   assert.notEqual(decision.threat, 'UNCONFIRMED');
   const formatted = dt.formatDecision(decision);
@@ -142,7 +142,7 @@ test('T10: evaluate() returning SILENT WITH a real risk reason still returns UNC
     { decisionThresholds: { maliciousVotes: 5, suspiciousVotes: 3 } },
     { trustedProviders: [], trustedNamespaces: [], trustedScopes: {} }
   );
-  const decision = dt.evaluate({ success: true, found: true, maliciousVotes: 0 }, { signals: ['DEPRECATED'] }, 'untrusted-pkg');
+  const decision = dt.evaluate({ success: true, found: true, maliciousVotes: 0 }, { signals: ['DEPRECATED'] }, 'untrusted-pkg', { status: 'complete', found: false });
   assert.equal(decision.action, 'SILENT');
   assert.equal(decision.threat, 'UNCONFIRMED');
   const formatted = dt.formatDecision(decision);
@@ -179,9 +179,10 @@ test('T13: evaluate() with signals ["GITHUB_CHECK_FAILED"] returns SILENT and UN
     { decisionThresholds: { maliciousVotes: 5, suspiciousVotes: 3 } },
     { trustedProviders: [], trustedNamespaces: [], trustedScopes: {} }
   );
-  const decision = dt.evaluate({ success: true, found: true, maliciousVotes: 0 }, { signals: ['GITHUB_CHECK_FAILED'] }, 'untrusted-pkg');
+  const decision = dt.evaluate({ success: true, found: true, maliciousVotes: 0 }, { signals: ['GITHUB_CHECK_FAILED'] }, 'untrusted-pkg', { status: 'complete', found: false });
   assert.equal(decision.action, 'SILENT');
-  assert.equal(decision.threat, 'UNCONFIRMED');
+  assert.equal(decision.threat, 'INCOMPLETE');
+  assert.equal(decision.installAllowed, false);
   assert.notEqual(decision.threat, 'SAFE');
 });
 
@@ -191,8 +192,7 @@ test('T14: evaluate() with signals ["GITHUB_CHECK_FAILED", "DEPRECATED"] returns
     { decisionThresholds: { maliciousVotes: 5, suspiciousVotes: 3 } },
     { trustedProviders: [], trustedNamespaces: [], trustedScopes: {} }
   );
-  const decision = dt.evaluate({ success: true, found: true, maliciousVotes: 0 }, { signals: ['GITHUB_CHECK_FAILED', 'DEPRECATED'] }, 'untrusted-pkg');
+  const decision = dt.evaluate({ success: true, found: true, maliciousVotes: 0 }, { signals: ['GITHUB_CHECK_FAILED', 'DEPRECATED'] }, 'untrusted-pkg', { status: 'complete', found: false });
   assert.equal(decision.action, 'SILENT');
-  assert.equal(decision.threat, 'UNCONFIRMED');
+  assert.equal(decision.threat, 'INCOMPLETE');
 });
-

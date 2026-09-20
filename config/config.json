@@ -2,7 +2,8 @@
   "virustotal": {
     "apiKey": "",
     "baseUrl": "https://www.virustotal.com/api/v3",
-    "timeoutMs": 10000
+    "timeoutMs": 10000,
+    "dailyRequestLimit": 400
   },
   "reputation": {
     "npm": {

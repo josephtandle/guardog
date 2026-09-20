@@ -1,64 +1,32 @@
-# Guard Dog Security Operations Manifest
+# MyOS Guard Dog 4.0 operations
 
-## Structure
+Guard Dog protects supported package workflows, not the entire operating system.
 
-```
-guard-dog/
-├── logs/                          # Real-time operational logs
-│   ├── scans/                     # Vulnerability scan results
-│   ├── alerts/                    # Security alerts triggered
-│   ├── install-history/           # Package installation audit trail
-│   └── dependency-tracking/       # Dependency update events
-├── data/                          # Consolidated threat data
-│   ├── vulnerabilities/           # Master vulnerability database
-│   ├── remediation/               # Remediation tracking
-│   └── baselines/                 # Security baselines
-├── reports/                       # Generated reports
-│   ├── daily/                     # Daily digests
-│   ├── weekly/                    # Weekly summaries
-│   ├── monthly/                   # Monthly reviews
-│   └── critical-alerts/           # Critical incident reports
-├── archive/                       # Historical records (compressed)
-│   └── YYYY/MM/
-└── bin/                           # Operational scripts
-```
+## Local state
 
-## Log Retention Policy
+State is stored in `GUARDOG_HOME`, or `~/.guardog` by default.
 
-| Log Type | Retention | Format | Location |
-|----------|-----------|--------|----------|
-| Scans | 90 days | NDJSON | logs/scans/ |
-| Alerts | 365 days | NDJSON | logs/alerts/ |
-| Install History | 365 days | NDJSON | logs/install-history/ |
-| Dependency Changes | 365 days | NDJSON | logs/dependency-tracking/ |
-| Reports | 730 days | Markdown | reports/ |
-| Critical Incidents | 1825 days | NDJSON | archive/ |
+- `config.json`: selected scan roots, schedule consent and local run time.
+- `.env`: local VirusTotal credential, never include it in reports.
+- `bin/nightly-runner.cjs`: Guard Dog-owned scheduler entry point.
+- `data/last-nightly.json`: latest scan receipt, coverage and findings.
+- `data/nightly.lock`: overlap protection for active nightly runs.
+- `data/resilience-state.json`: privacy-safe install/nightly verification history and recurring issue categories.
 
-## Key Files
+## Operations
 
-- `.logindex.json` - Log format and retention schema
-- `logs/install-history/schema.json` - Installation audit structure
-- `data/vulnerabilities/schema.json` - Vulnerability tracking format
-- `MANIFEST.md` - This document
+Use `myos-guard-dog doctor --repair` to inspect health and attempt bounded repairs.
+Daily scans also check local health. Only previously enabled schedules can be
+restored. Unknown runner files and scheduler conflicts require human attention.
+Repairs must not weaken security checks or modify project dependencies.
 
-## Daily Operations
+Use `myos-guard-dog updates status` to inspect actual OS scheduling and
+`myos-guard-dog nightly` to exercise a run. An empty or incomplete scan is not success.
+Review the receipt's dependency count, configured roots, findings and missing
+coverage. The machine must be available for its scheduler to run.
 
-1. Scans run nightly (PATH-fixed cron)
-2. Logs written to appropriate subdirectories
-3. Daily digest generated at 06:30
-4. Critical alerts sent immediately
-5. Monthly consolidation on the 1st
+Install and nightly resilience cycles are bounded to owned local repairs, health
+readback and recurrence tracking. They never self-modify code or security policy.
 
-## Queries
-
-```bash
-# Find all vulnerabilities for a package
-jq '.[] | select(.affected_packages[].name == "express")' data/vulnerabilities/*.json
-
-# Get all critical issues from last 7 days
-find logs/alerts -mtime -7 | xargs jq 'select(.severity == "critical")'
-
-# List all installations this month
-grep "$(date +%Y-%m)" logs/install-history/*.json
-```
-
+This release does not promise immediate external notifications, daily email
+digests, monthly consolidation or automatic vulnerability remediation.
