@@ -3,6 +3,8 @@
  * Scans packages for malicious code using VirusTotal API v3
  */
 
+import { VirusTotalQuota } from './virustotal-quota.js';
+
 // Share the request budget across every scanner using the same key in this process.
 const requestQueues = new Map();
 const REQUEST_INTERVAL_MS = 16000;
@@ -16,6 +18,9 @@ export class VirusTotalScanner {
     this.now = runtime.now || Date.now;
     this.wait = runtime.wait || (milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)));
     this.fetch = runtime.fetch || ((...args) => globalThis.fetch(...args));
+    this.quota = runtime.quota || (Number.isInteger(config.virustotal.dailyRequestLimit)
+      ? new VirusTotalQuota({ limit: config.virustotal.dailyRequestLimit })
+      : null);
     
     if (!this.apiKey) {
       throw new Error('VirusTotal API key is required (VIRUSTOTAL_API_KEY)');
@@ -32,6 +37,11 @@ export class VirusTotalScanner {
       const delay = queue.nextAt - this.now();
       if (delay > 0) await this.wait(delay);
       queue.nextAt = this.now() + REQUEST_INTERVAL_MS;
+      if (this.quota) {
+        const reservation = this.quota.reserve();
+        const allowed = reservation === true || reservation?.allowed === true;
+        if (!allowed) throw new Error('VirusTotal daily quota guard stopped this request before it was sent.');
+      }
       // Waiting for a rate-limit slot must not consume the network timeout.
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
@@ -77,7 +87,7 @@ export class VirusTotalScanner {
     } catch (error) {
       return {
         success: false,
-        status: /401|403/.test(error.message) ? 'unauthorized' : /429/.test(error.message) ? 'rate_limited' : 'unavailable',
+        status: /401|403/.test(error.message) ? 'unauthorized' : /429|quota/i.test(error.message) ? 'rate_limited' : 'unavailable',
         error: error.message,
         maliciousVotes: 0,
         suspiciousVotes: 0
@@ -152,7 +162,7 @@ export class VirusTotalScanner {
     let { response, data } = await this.request(`${this.baseUrl}/files/${hash}`, {
       headers: { 'x-apikey': this.apiKey }
     });
-    if (response.status === 429 || response.status >= 500) {
+    if (response.status >= 500) {
       const retrySeconds = Number(response.headers.get('retry-after') || 1);
       if (Number.isFinite(retrySeconds) && retrySeconds >= 0 && retrySeconds <= 5) {
         await this.wait(retrySeconds * 1000);

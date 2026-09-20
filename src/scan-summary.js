@@ -25,12 +25,14 @@ export function summarizeDependencyScan(inventory, results) {
   }
   if (!inventory.complete && inventory.issues.length === 0) issues.push('Dependency inventory coverage is incomplete.');
   const incomplete = !inventory.complete || incompleteCount > 0 || issues.length > 0;
+  const quotaExhausted = results.some(result => result.scanResults?.status === 'rate_limited');
   return {
     status: dangerousCount ? 'dangerous' : incomplete ? 'incomplete' : 'complete',
     coverage: incomplete ? 'incomplete' : 'complete',
     dependencyCount: inventory.packages.length,
     dangerousCount,
     incompleteCount,
+    quotaExhausted,
     issues
   };
 }

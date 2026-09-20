@@ -13,7 +13,7 @@ Use the [installation prompt](GUARD_DOG_PROMPT.md). It guides your assistant thr
 For a terminal installation on macOS, Windows, or Linux, use Node 22 or newer (Node 24 LTS preferred):
 
 ```sh
-npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.0
+npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.1
 myos-guard-dog setup
 myos-guard-dog test
 myos-guard-dog scan "/your/project"

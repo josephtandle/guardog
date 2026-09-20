@@ -104,6 +104,28 @@ test('large projects receive the remaining overall deadline instead of a five-mi
   } finally { if (previous === undefined) delete process.env.GUARDOG_HOME; else process.env.GUARDOG_HOME = previous; }
 });
 
+test('nightly scan stops after a child reports VirusTotal quota exhaustion', async () => {
+  const { runNightly } = await import('../bin/nightly-scan.js');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'guardog-quota-stop-'));
+  const previous = process.env.GUARDOG_HOME;
+  process.env.GUARDOG_HOME = path.join(root, 'state');
+  fs.mkdirSync(process.env.GUARDOG_HOME);
+  fs.writeFileSync(path.join(process.env.GUARDOG_HOME, 'config.json'), JSON.stringify({ nightlyUpdates: false, scanRoots: [root] }));
+  fs.writeFileSync(path.join(root, 'package.json'), '{}');
+  fs.mkdirSync(path.join(root, 'nested'));
+  fs.writeFileSync(path.join(root, 'nested', 'package.json'), '{}');
+  let calls = 0;
+  try {
+    const receipt = runNightly({ roots: [root], healthOptions: { platform: 'linux', run: () => ({ status: 0, stdout: '' }) }, run: () => {
+      calls++;
+      return { status: 2, stdout: JSON.stringify({ status: 'incomplete', dependencyCount: 1, dangerousCount: 0, quotaExhausted: true, issues: ['VirusTotal daily quota exhausted.'] }) };
+    } });
+    assert.equal(calls, 1, 'no further project scans should run after daily quota exhaustion');
+    assert.equal(receipt.projectsScanned, 1);
+    assert.match(receipt.issues.join(' '), /quota exhausted/i);
+  } finally { if (previous === undefined) delete process.env.GUARDOG_HOME; else process.env.GUARDOG_HOME = previous; }
+});
+
 test('Windows health rejects weekly timing and extra action arguments', async () => {
   const { inspectSchedule, scheduleSpec } = await import('../src/scheduler.js');
   const config = { nightlyTime: '03:30' };

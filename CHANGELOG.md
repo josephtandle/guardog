@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.1
+
+- Add a persisted cross-process VirusTotal daily request budget of 400 calls, preserving 100 calls of public-API headroom for manual checks.
+- Treat VirusTotal quota responses as a hard stop, with no retry after a 429 response.
+- Stop nightly scans once VirusTotal quota coverage is exhausted, and route the legacy macOS launcher through the same protected nightly runner.
+
 ## 4.0.0
 
 - Rename the public package and command to `myos-guard-dog` to avoid collisions with unrelated GuardDog and Guardog tools. Fresh installs no longer expose ambiguous command aliases.

@@ -39,11 +39,11 @@ test('concurrent scanner instances sharing an API key share slots', async () => 
   assert.deepEqual(h.calls.map(call => call.time), [0, 16000, 32000]);
 });
 
-test('retry reserves another full slot, but unauthorized requests never retry', async () => {
+test('quota responses do not retry, and unauthorized requests never retry', async () => {
   const { VirusTotalScanner } = await import('../src/virustotal-scanner.js');
   const h = harness('pacing-retry', [{ status: 429 }, { status: 404 }]);
-  await new VirusTotalScanner(h.config, h.runtime).getFileReport(hash);
-  assert.deepEqual(h.calls.map(call => call.time), [0, 16000]);
+  await assert.rejects(() => new VirusTotalScanner(h.config, h.runtime).getFileReport(hash), /429/);
+  assert.deepEqual(h.calls.map(call => call.time), [0]);
   const denied = harness('pacing-unauthorized', [{ status: 401 }]);
   const result = await new VirusTotalScanner(denied.config, denied.runtime).scan(hash);
   assert.equal(result.status, 'unauthorized');
@@ -75,4 +75,19 @@ test('time spent waiting for a slot does not consume the request timeout', async
   const second = await scanner.getFileReport(hash);
   assert.equal(second.status, 'not_found');
   assert.ok(h.calls.every(call => !call.aborted));
+});
+
+test('a shared daily quota guard prevents another request after capacity is reserved', async () => {
+  const { VirusTotalScanner } = await import('../src/virustotal-scanner.js');
+  const h = harness('pacing-daily-budget', [{ status: 404 }]);
+  let remaining = 1;
+  const scanner = new VirusTotalScanner(h.config, {
+    ...h.runtime,
+    quota: { reserve: () => remaining-- > 0 }
+  });
+  assert.equal((await scanner.scan(hash)).status, 'not_found');
+  const capped = await scanner.scan(hash);
+  assert.equal(capped.status, 'rate_limited');
+  assert.match(capped.error, /daily quota guard/i);
+  assert.equal(h.calls.length, 1, 'the capped request must not reach VirusTotal');
 });

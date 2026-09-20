@@ -23,37 +23,7 @@ node "$GUARD_DOG_DIR/bin/check-scrooge-freshness.cjs" || true
 # itself failed to fire.
 node "$HOME/.myos/workspace/agents/revenue-pulse/bin/check-revenue-pulse-freshness.cjs" || true
 
-# Find all package.json files in workspace (skip node_modules)
-PACKAGE_FILES=$(find "$WORKSPACE" -name "package.json" \
-  -not -path "*/node_modules/*" \
-  -not -path "*/.next/*" \
-  -not -path "*/dist/*" \
-  -not -path "*/build/*" \
-  -maxdepth 4)
-
-TOTAL=0
-SCANNED=0
-DANGEROUS=0
-
-for PKG in $PACKAGE_FILES; do
-  TOTAL=$((TOTAL + 1))
-  PROJECT_DIR=$(dirname "$PKG")
-  PROJECT_NAME=$(basename "$PROJECT_DIR")
-
-  echo ""
-  echo "--- Scanning: $PROJECT_NAME ($PKG) ---"
-
-  node "$GUARD_DOG_DIR/bin/scan-deps.js" "$PKG" 2>&1
-  EXIT_CODE=$?
-  SCANNED=$((SCANNED + 1))
-
-  if [ $EXIT_CODE -ne 0 ]; then
-    DANGEROUS=$((DANGEROUS + 1))
-  fi
-done
-
-echo ""
-echo "===== Nightly Scan Complete ====="
-echo "Projects scanned: $SCANNED / $TOTAL"
-echo "Dangerous projects: $DANGEROUS"
-echo "================================="
+# Delegate dependency discovery and stopping conditions to the released nightly
+# runner. It uses the cross-process VirusTotal daily budget and stops the run as
+# soon as that budget is exhausted, unlike the historical per-manifest loop.
+GUARDOG_WORKSPACE="$WORKSPACE" node "$GUARD_DOG_DIR/bin/nightly-scan.js"

@@ -31,7 +31,7 @@ test('completed dangerous evidence remains complete while inventory issues persi
   const { summarizeDependencyScan } = await import('../src/scan-summary.js');
   const inventory = {complete:true,issues:[],packages:[{name:'one',version:'1.0.0'}]};
   const results = [{decision:{action:'BARK',coverage:'complete'},cveResults:{status:'complete'}}];
-  assert.deepEqual(summarizeDependencyScan(inventory,results),{status:'dangerous',coverage:'complete',dependencyCount:1,dangerousCount:1,incompleteCount:0,issues:[]});
+  assert.deepEqual(summarizeDependencyScan(inventory,results),{status:'dangerous',coverage:'complete',dependencyCount:1,dangerousCount:1,incompleteCount:0,quotaExhausted:false,issues:[]});
   const incomplete = summarizeDependencyScan({...inventory,complete:false,issues:['unresolved local dependency']},results);
   assert.equal(incomplete.coverage,'incomplete');
   assert.equal(incomplete.status,'dangerous');

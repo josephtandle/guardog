@@ -82,6 +82,10 @@ function performNightly(options) {
       const expectedExit = { complete: 0, dangerous: 1, incomplete: 2 }[summary.status];
       if (summary.status === 'incomplete' || result.status !== expectedExit) receipt.issues.push('Incomplete or inconsistent scan: ' + manifest);
       for (const issue of summary.issues || []) receipt.issues.push(manifest + ': ' + (typeof issue === 'string' ? issue : JSON.stringify(issue)));
+      if (summary.quotaExhausted === true) {
+        receipt.issues.push('VirusTotal daily quota exhausted. Stopped remaining project scans to preserve the next UTC-day allowance.');
+        break;
+      }
     } catch { receipt.issues.push('Scan failed for ' + manifest + ': ' + (result.error?.message || result.stderr || 'missing scan summary')); }
   }
   if (receipt.dependencyCount === 0) receipt.issues.push('No installed dependencies were scanned.');

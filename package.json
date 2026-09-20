@@ -1,6 +1,6 @@
 {
   "name": "myos-guard-dog",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Security agent for scanning packages and detecting malicious code",
   "main": "src/index.js",
   "type": "module",
