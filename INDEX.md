@@ -1,4 +1,4 @@
-# guard-dog
+# MyOS Guard Dog
 
 ## Files
 

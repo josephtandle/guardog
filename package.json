@@ -1,6 +1,6 @@
 {
   "name": "myos-guard-dog",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Security agent for scanning packages and detecting malicious code",
   "main": "src/index.js",
   "type": "module",
@@ -19,6 +19,7 @@
   "files": [
     ".env.example",
     "README.md",
+    "myos-guard-dog.md",
     "QUICKSTART.md",
     "GUARD_DOG_PROMPT.md",
     "autonomizer.json",
@@ -35,7 +36,7 @@
     "bin/run-cso.sh"
   ],
   "engines": {
-    "node": ">=22"
+    "node": "24.x"
   },
   "keywords": [
     "security",

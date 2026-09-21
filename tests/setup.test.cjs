@@ -20,6 +20,9 @@ test("quick setup is local-only and VirusTotal keys are stored privately", async
     assert.equal(config.gitPreCommitHook, false);
     assert.equal('guardedInstalls' in config, false);
     assert.equal('guardedInstalls' in JSON.parse(fs.readFileSync(path.join(tempDir, "config.json"), "utf8")), false);
+    const resilience = JSON.parse(fs.readFileSync(path.join(tempDir, 'data', 'resilience-state.json'), 'utf8'));
+    assert.equal(resilience.lastPhase, 'install');
+    assert.equal(resilience.cycles, 1);
 
     saveVirusTotalKey("synthetic-test-key");
     const envPath = path.join(tempDir, ".env");
@@ -62,6 +65,7 @@ test('requested scheduler failure rejects setup as incomplete', async () => {
       removeHook: () => ({ ok: true, message: 'No hook' })
     }), error => error.exitCode === 2);
     assert.equal(JSON.parse(fs.readFileSync(path.join(dir, 'config.json'))).nightlyUpdates, false);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(dir, 'data', 'resilience-state.json'))).lastPhase, 'install');
   } finally {
     if (previous === undefined) delete process.env.GUARDOG_HOME; else process.env.GUARDOG_HOME = previous;
     fs.rmSync(dir, { recursive: true, force: true });

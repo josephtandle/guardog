@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { ensureGuardogHome, guardogConfigPath, guardogEnvPath, guardogHome } from './paths.js';
 import { inspectSchedule, registerSchedule, inspectRunner, repairRunner, scheduleSpec } from './scheduler.js';
 
-/** Repair only local state and an already opted-in missing Guardog schedule. */
+/** Repair only local state and an already opted-in missing MyOS Guard Dog schedule. */
 export function checkHealth(options = {}) {
   const issues = [];
   const repairs = [];
@@ -35,7 +35,7 @@ export function checkHealth(options = {}) {
     } else {
       try {
         const result = registerSchedule(config, options);
-        if (result.ok) repairs.push('Restored the previously enabled Guardog schedule.');
+        if (result.ok) repairs.push('Restored the previously enabled MyOS Guard Dog schedule.');
         else issues.push(result.message);
         schedule = inspectSchedule(config, options);
       } catch (error) { issues.push('Schedule repair failed: ' + error.message); }
@@ -46,7 +46,7 @@ export function checkHealth(options = {}) {
   try {
     const spec = scheduleSpec(config, options);
     runner = inspectRunner(spec);
-    if (options.repair && config.nightlyUpdates === true && schedule.registered && !runner.ok) {
+    if (options.repair && config.nightlyUpdates === true && !runner.ok) {
       const result = repairRunner(spec);
       if (result.ok && result.changed) repairs.push('Restored the owned nightly runner.');
       else if (!result.ok) issues.push(result.message);

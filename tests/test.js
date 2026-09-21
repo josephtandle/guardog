@@ -382,9 +382,11 @@ async function runTests() {
   });
 
   await test.run('Autonomizer contract and version tracking', async () => {
-    const contract = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../autonomizer.json'), 'utf-8'));
+    const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+    const contract = JSON.parse(readFileSync(join(root, 'autonomizer.json'), 'utf-8'));
+    const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf-8'));
     test.assert(contract.agentId === 'guard-dog', 'Contract agentId should match guard-dog');
-    test.assert(contract.version === '4.0.0', 'Guard Dog contract version should be tracked');
+    test.assert(contract.version === manifest.version, 'Guard Dog contract version should match the package');
     test.assert(contract.reflectionQuestions.length === 5, 'Guard Dog should have a five-question self-improving loop');
     test.assert(
       contract.reflectionQuestions.some((q) => /how could this get even better\?/i.test(q.prompt)),

@@ -171,7 +171,7 @@ export async function runGuardedInstall(args, GuardDogClass, options = {}) {
       }
       throw error;
     }
-    console.log('Guardog installed the approved locked dependency tree. Lifecycle scripts were not executed; packages requiring build scripts need a separate review.');
+    console.log('MyOS Guard Dog installed the approved locked dependency tree. Lifecycle scripts were not executed; packages requiring build scripts need a separate review.');
     return { installed: true, packagesChecked: seen.size, scriptsExecuted: false };
   } finally {
     rmSync(staging, { recursive: true, force: true });

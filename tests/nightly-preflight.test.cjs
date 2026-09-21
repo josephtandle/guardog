@@ -28,6 +28,9 @@ test('the nightly API repairs a missing opted-in schedule and records the repair
     assert.match(cron, /existing-backup/);
     const saved = JSON.parse(fs.readFileSync(path.join(process.env.GUARDOG_HOME, 'data', 'last-nightly.json')));
     assert.deepEqual(saved.preflight, receipt.preflight);
+    assert.equal(receipt.resilience.lastPhase, 'nightly');
+    assert.equal(receipt.resilience.healthyStreak, 1);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(process.env.GUARDOG_HOME, 'data', 'resilience-state.json'))).cycles, 1);
     const second = runNightly({ roots: [root], run: scanner, healthOptions: { platform: 'linux', run: scheduler } });
     assert.equal(second.status, 'complete');
     assert.equal(writes, 1, 'daily repair must be idempotent');

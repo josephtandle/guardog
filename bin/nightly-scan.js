@@ -6,6 +6,10 @@ import { spawnSync } from 'node:child_process';
 import { ensureGuardogHome, guardogHome, packageRoot } from '../src/paths.js';
 import { loadUserConfig } from '../src/setup.js';
 import { checkHealth } from '../src/health.js';
+import { recordResilienceCycle } from '../src/resilience-loop.js';
+import { assertSupportedNodeVersion } from '../src/node-version.js';
+
+assertSupportedNodeVersion();
 
 const skipDirs = new Set(['node_modules', '.git', '.next', 'dist', 'build', 'coverage', '.venv', 'venv']);
 
@@ -67,7 +71,7 @@ function performNightly(options) {
     if (typeof root !== 'string' || !existsSync(root) || !statSync(root).isDirectory()) receipt.issues.push('Scan root is unavailable: ' + root);
     else discover(root);
   }
-  if (roots.length === 0) receipt.issues.push('No scan roots configured. Run guardog setup or set GUARDOG_WORKSPACE.');
+  if (roots.length === 0) receipt.issues.push('No scan roots configured. Run myos-guard-dog setup or set GUARDOG_WORKSPACE.');
   for (const manifest of manifests) {
     const remaining = deadline - Date.now();
     if (remaining <= 0) { receipt.issues.push('Nightly scan time budget exhausted.'); break; }
@@ -96,6 +100,16 @@ function performNightly(options) {
   const temporary = receiptPath + '.' + process.pid + '.tmp';
   writeFileSync(temporary, JSON.stringify(receipt, null, 2), { mode: 0o600 });
   renameSync(temporary, receiptPath);
+  try {
+    const health = checkHealth({ ...options.healthOptions, repair: false });
+    receipt.resilience = recordResilienceCycle({ phase: 'nightly', health, receipt });
+  } catch (error) {
+    receipt.issues.push('Resilience verification failed: ' + error.message);
+    receipt.status = 'incomplete';
+    receipt.exitCode = 2;
+  }
+  writeFileSync(temporary, JSON.stringify(receipt, null, 2), { mode: 0o600 });
+  renameSync(temporary, receiptPath);
   return receipt;
 }
 
@@ -105,7 +119,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     console.log(JSON.stringify(receipt, null, 2));
     process.exitCode = receipt.exitCode;
   } catch (error) {
-    console.error('Guardog nightly scan incomplete: ' + error.message);
+    console.error('MyOS Guard Dog nightly scan incomplete: ' + error.message);
     process.exitCode = 2;
   }
 }

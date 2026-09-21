@@ -1,5 +1,5 @@
 {
-  "version": "4.0.1",
+  "version": "4.0.2",
   "agentId": "guard-dog",
   "loopBoundary": "Read-only package-security evidence, verdict drafting without enforcement, and GuardDog-owned local scan records.",
   "autonomousActions": [
@@ -23,5 +23,5 @@
     { "id": "guard_dog_evidence", "prompt": "What evidence would prove this conclusion is correct?" },
     { "id": "guard_dog_follow_up", "prompt": "What safe internal follow-up remains undone?" }
   ],
-  "lastAutonomizerUpdate": "2026-08-17T00:00:00.000Z"
+  "lastAutonomizerUpdate": "2026-09-21T00:00:00.000Z"
 }

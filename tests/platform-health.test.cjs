@@ -175,6 +175,75 @@ test('health repairs a missing owned runner but preserves unknown bytes', async 
   } finally { if (previous === undefined) delete process.env.GUARDOG_HOME; else process.env.GUARDOG_HOME = previous; }
 });
 
+test('health repairs the owned runner without replacing a customized marked cron entry', async () => {
+  const { checkHealth } = await import('../src/health.js');
+  const { scheduleSpec } = await import('../src/scheduler.js');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'guardog-custom-cron-'));
+  const previous = process.env.GUARDOG_HOME;
+  process.env.GUARDOG_HOME = path.join(root, 'state');
+  fs.mkdirSync(process.env.GUARDOG_HOME);
+  const config = { nightlyUpdates: true, scanRoots: [root] };
+  fs.writeFileSync(path.join(process.env.GUARDOG_HOME, 'config.json'), JSON.stringify(config));
+  const customized = `30 2 * * * /custom/guard-dog-wrapper # guardog-nightly\n`;
+  let cron = customized;
+  let writes = 0;
+  const run = (_, args, options) => {
+    if (args[0] === '-l') return { status: 0, stdout: cron };
+    writes++;
+    cron = options.input;
+    return { status: 0, stdout: '' };
+  };
+  try {
+    const health = checkHealth({ repair: true, platform: 'linux', run, checkLastRun: false });
+    const spec = scheduleSpec(config, { platform: 'linux' });
+    assert.equal(writes, 0, 'repair must preserve a customized marked cron entry');
+    assert.equal(cron, customized);
+    assert.equal(fs.existsSync(spec.runner), true, 'owned runner should be repaired independently');
+    assert.equal(health.runner.ok, true);
+    assert.equal(health.schedule.state, 'stale');
+  } finally { if (previous === undefined) delete process.env.GUARDOG_HOME; else process.env.GUARDOG_HOME = previous; }
+});
+
+test('enabling nightly scans refuses to overwrite a customized marked cron entry', async () => {
+  const { installNightlySchedule } = await import('../src/setup.js');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'guardog-preserve-cron-'));
+  const previous = process.env.GUARDOG_HOME;
+  process.env.GUARDOG_HOME = path.join(root, 'state');
+  let cron = `30 2 * * * /custom/guard-dog-wrapper # guardog-nightly\n`;
+  let writes = 0;
+  const run = (_, args, options) => {
+    if (args[0] === '-l') return { status: 0, stdout: cron };
+    writes++;
+    cron = options.input;
+    return { status: 0, stdout: '' };
+  };
+  try {
+    const result = installNightlySchedule({ nightlyUpdates: true, scanRoots: [root] }, { platform: 'linux', run });
+    assert.equal(result.ok, false);
+    assert.match(result.message, /customized|stale|differs/i);
+    assert.equal(writes, 0);
+  } finally { if (previous === undefined) delete process.env.GUARDOG_HOME; else process.env.GUARDOG_HOME = previous; }
+});
+
+test('disabling nightly scans preserves a customized marked cron entry', async () => {
+  const { unregisterSchedule } = await import('../src/scheduler.js');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'guardog-preserve-disable-'));
+  const customized = `30 2 * * * /custom/guard-dog-wrapper # guardog-nightly\n`;
+  let cron = customized;
+  let writes = 0;
+  const run = (_, args, options) => {
+    if (args[0] === '-l') return { status: 0, stdout: cron };
+    writes++;
+    cron = options.input;
+    return { status: 0, stdout: '' };
+  };
+  const result = unregisterSchedule({}, { platform: 'linux', home: root, run });
+  assert.equal(result.ok, false);
+  assert.match(result.message, /customized|stale|differs/i);
+  assert.equal(writes, 0);
+  assert.equal(cron, customized);
+});
+
 test('nightly refuses overlap and enforces a finite run budget', async () => {
   const { runNightly } = await import('../bin/nightly-scan.js');
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'guardog-lock-'));

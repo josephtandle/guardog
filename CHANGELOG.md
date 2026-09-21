@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.0.2
+
+- Make the Git hook scan staged dependency metadata, including lockfile-only, overrides and workspace resolution changes, while skipping scripts-only manifest edits.
+- Distinguish confirmed danger from incomplete coverage and keep changed dependencies fail-closed.
+- Preserve customized scheduler entries during enable, repair and disable, while repairing the owned runner independently.
+- Add bounded install and nightly resilience cycles with repair readback, recurrence tracking and privacy-safe next actions.
+- Standardize the public repository, package and command identity as `josephtandle/myos-guard-dog` and `myos-guard-dog`.
+- Pin development, CI, installation and runtime support to Node 24 LTS. The shell installer rejects other majors before npm runs, and every shipped executable rejects them before Guard Dog operates.
+
 ## 4.0.1
 
 - Add a persisted cross-process VirusTotal daily request budget of 400 calls, preserving 100 calls of public-API headroom for manual checks.

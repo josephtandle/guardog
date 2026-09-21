@@ -1,3 +1,8 @@
+## Release completion
+
+- For authorized changes in this repository, completion includes an intentional commit and push to the configured upstream.
+- Do not report work as done until the remote branch and any release tag have been read back and verified.
+
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 

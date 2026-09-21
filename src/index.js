@@ -10,6 +10,7 @@ import { dirname, join, resolve } from 'path';
 import { spawnSync } from 'child_process';
 import { createHash } from 'node:crypto';
 import { loadEnvFile } from './env-loader.js';
+import { assertSupportedNodeVersion } from './node-version.js';
 
 import { VirusTotalScanner } from './virustotal-scanner.js';
 import { ReputationChecker } from './reputation-checker.js';
@@ -30,6 +31,8 @@ import {
   runSetup,
   saveUserConfig
 } from './setup.js';
+
+assertSupportedNodeVersion();
 
 // Load environment variables
 loadEnvFile(join(dirname(fileURLToPath(import.meta.url)), '../.env'));
@@ -449,7 +452,7 @@ function hooksCommand(action) {
     console.log(result.message);
   } else {
     console.log(`Git pre-commit hook: ${config.gitPreCommitHook ? 'enabled' : 'disabled'}`);
-    console.log('Guarded installs: use `guardog install <package>` before dependency installs.');
+    console.log('Guarded installs: use `myos-guard-dog install <package>` before dependency installs.');
   }
 }
 
@@ -481,7 +484,7 @@ async function main(argv = process.argv.slice(2)) {
   } else if (command === 'nightly') {
     const result = spawnSync(process.execPath, [join(packageRoot(), 'bin', 'nightly-scan.js')], { stdio: 'inherit' });
     if (result.error) {
-      console.error(`\nGuardog could not run nightly scan: ${result.error.message}`);
+      console.error(`\nMyOS Guard Dog could not run nightly scan: ${result.error.message}`);
       process.exit(1);
     }
     process.exit(result.status ?? 1);
@@ -498,7 +501,7 @@ async function main(argv = process.argv.slice(2)) {
     const target = args[3];
 
     if (!packageName) {
-      console.error('Usage: guardog analyze <package-name> [ecosystem] [url/hash]');
+      console.error('Usage: myos-guard-dog analyze <package-name> [ecosystem] [url/hash]');
       process.exit(1);
     }
 
@@ -510,7 +513,7 @@ async function main(argv = process.argv.slice(2)) {
     const guardDog = new GuardDog();
     const filePath = args[1];
     if (!filePath) {
-      console.error('Usage: guardog batch <json-file>');
+      console.error('Usage: myos-guard-dog batch <json-file>');
       process.exit(1);
     }
 
@@ -525,7 +528,7 @@ async function main(argv = process.argv.slice(2)) {
 const invokedPath = process.argv[1] ? realpathSync(resolve(process.argv[1])) : '';
 if (fileURLToPath(import.meta.url) === invokedPath) {
   main().catch(error => {
-    console.error(`Guardog could not complete the command: ${error?.message || String(error)}`);
+    console.error(`MyOS Guard Dog could not complete the command: ${error?.message || String(error)}`);
     process.exit(error.exitCode === 2 ? 2 : 1);
   });
 }

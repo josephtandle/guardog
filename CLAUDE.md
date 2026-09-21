@@ -1,6 +1,6 @@
 # Guard Dog contributor guide
 
-Read README.md and guardog.md before changing behavior or describing protection.
+Read README.md and myos-guard-dog.md before changing behavior or describing protection.
 
 The CLI is `node src/index.js`. Run `npm test` for offline regression tests.
 `npm run test:live` makes external service calls and may use a locally configured key.

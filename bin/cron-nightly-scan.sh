@@ -2,8 +2,8 @@
 # Guard Dog Nightly Cron Scanner
 # Scans all package.json files in the workspace
 #
-# Cron entry (runs at 2:30 AM daily):
-#   30 2 * * * ~/guardog/bin/cron-nightly-scan.sh >> ~/guardog/data/cron.log 2>&1
+# Legacy/manual wrapper. The supported scheduler command is:
+#   myos-guard-dog updates enable --workspace "/your/workspace" --time 02:30
 #
 # Change WORKSPACE below to the directory you want to scan.
 

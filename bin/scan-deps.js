@@ -3,6 +3,9 @@
 import { resolve } from 'node:path';
 import { collectDependencies } from '../src/dependency-inventory.js';
 import { summarizeDependencyScan } from '../src/scan-summary.js';
+import { assertSupportedNodeVersion } from '../src/node-version.js';
+
+assertSupportedNodeVersion();
 
 const args = process.argv.slice(2);
 const json = args.includes('--json');
@@ -10,7 +13,7 @@ const manifest = args[0];
 const log = console.log.bind(console);
 const errorLog = console.error.bind(console);
 async function main() {
-  if (!manifest || manifest.startsWith('--')) throw new Error('Usage: guard-dog-scan <package.json> [--json] [--changed-only <old-package.json>]');
+  if (!manifest || manifest.startsWith('--')) throw new Error('Usage: myos-guard-dog-scan <package.json> [--json]');
   const inventory = collectDependencies(resolve(manifest));
   // Manifest changes can alter transitive resolution, so legacy changed-only callers
   // receive a full resolved inventory audit rather than skipping vulnerable leaves.
