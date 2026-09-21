@@ -10,7 +10,7 @@ Works out of the box with no API keys. VirusTotal is optional and subject to Vir
 ## URLs / Access
 
 - GitHub: https://github.com/josephtandle/myos-guard-dog
-- Install: `npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.2 && myos-guard-dog setup --quick`
+- Install: `npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.3 && myos-guard-dog setup --quick`
 
 ## App Location
 

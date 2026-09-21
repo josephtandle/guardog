@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.0.3
+
+- Declare POSIX installer and installed-hook tests unsupported on Windows, matching the product behavior, so cross-platform CI tests the supported surface without attempting to launch unavailable Bash commands.
+
 ## 4.0.2
 
 - Make the Git hook scan staged dependency metadata, including lockfile-only, overrides and workspace resolution changes, while skipping scripts-only manifest edits.

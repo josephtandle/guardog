@@ -5,7 +5,7 @@ Use [the installation prompt](GUARD_DOG_PROMPT.md) to have your assistant comple
 With Node 24 LTS installed:
 
 ```sh
-npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.2
+npm install -g --ignore-scripts github:josephtandle/myos-guard-dog#v4.0.3
 myos-guard-dog setup
 myos-guard-dog test
 myos-guard-dog scan "/your/project"
